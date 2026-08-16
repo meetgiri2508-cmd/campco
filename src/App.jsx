@@ -3,7 +3,7 @@ import {
   Home, Briefcase, MessageCircle, Users, UserPlus, User, GraduationCap,
   Search, Plus, X, Upload, CheckCircle2, Send, Award, Building2, Calendar,
   MapPin, Tag, ChevronRight, Star, ShieldCheck, FileText, Hash, ThumbsUp,
-  ArrowLeft, Sparkles, Bell, UserCheck, Menu
+  ArrowLeft, Sparkles, Bell, UserCheck, Menu, Heart, MessageSquare
 } from "lucide-react";
 
 // ---------- Design tokens ----------
@@ -392,6 +392,39 @@ const initialNetwork = [
   { id: "n3", name: "Aditya Shah", college: "KJ Somaiya College of Engineering", major: "Computer Engineering", role: "Student", bio: "Building a campus food-delivery app on the side.", skills: ["React", "Node.js"] },
   { id: "n4", name: "Meher D'Souza", college: "St. Xavier's College", major: "BSc Physics", bio: "Astrophysics enthusiast, part of the stargazing club.", role: "Student", skills: ["Python", "Data Analysis"] },
   { id: "n5", name: "Kabir Mehta", college: "NM College", major: "Commerce", role: "Student", bio: "Finance club core member, prepping for CA.", skills: ["Excel", "Valuation"] },
+];
+
+const initialProjectPosts = [
+  {
+    id: "p1",
+    author: "Aditya Shah",
+    college: "KJ Somaiya College of Engineering",
+    title: "Campus food-delivery app — MVP is live",
+    body: "Built a React Native app that lets hostel students order from the canteen and track pickup slots. Looking for a couple of beta testers this week.",
+    club: "Codeware",
+    likes: 12,
+    ts: Date.now() - 1000 * 60 * 55,
+  },
+  {
+    id: "p2",
+    author: "Rhea Kapadia",
+    college: "VJTI Mumbai",
+    title: "3D-printed drivetrain bracket, rev 3",
+    body: "Cut the weight by 18% versus the aluminium version without losing yield strength. Full FEA report in the Mechanical channel if anyone wants to review it.",
+    club: "Mechanical Engineers' Circle",
+    likes: 8,
+    ts: Date.now() - 1000 * 60 * 60 * 5,
+  },
+  {
+    id: "p3",
+    author: "Meher D'Souza",
+    college: "St. Xavier's College",
+    title: "Variable star light-curve analysis",
+    body: "Used data from a small home telescope + Python to plot brightness variation over 3 weeks. Presenting this at the astronomy club meetup on Friday.",
+    club: null,
+    likes: 5,
+    ts: Date.now() - 1000 * 60 * 60 * 22,
+  },
 ];
 
 const seedChannels = () => {
@@ -1467,35 +1500,49 @@ function NewThreadModal({ onClose, onSubmit }) {
 }
 
 // ---------- Clubs ----------
-function ClubsView({ profile, clubs, setClubs }) {
+function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification }) {
   const [showCreate, setShowCreate] = useState(false);
   const [joined, setJoined] = useState({});
+  const [tab, setTab] = useState("clubs");
 
   const toggleJoin = (id) => setJoined((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <div className="max-w-5xl">
-      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-5">
         <div>
           <Eyebrow color={C.marigoldDark}>Community</Eyebrow>
           <h1 className="font-black text-2xl sm:text-3xl" style={{ color: C.ink }}>Clubs</h1>
         </div>
-        <PrimaryButton icon={Plus} onClick={() => setShowCreate(true)}>Create a club</PrimaryButton>
+        {tab === "clubs" && <PrimaryButton icon={Plus} onClick={() => setShowCreate(true)}>Create a club</PrimaryButton>}
       </div>
 
-      <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>Suggested for {profile.major}</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        {clubs.filter((c) => c.major === profile.major).map((c) => (
-          <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
-        ))}
+      <div className="flex gap-2 mb-6">
+        <SecondaryButton active={tab === "clubs"} onClick={() => setTab("clubs")} icon={Users}>Clubs</SecondaryButton>
+        <SecondaryButton active={tab === "feed"} onClick={() => setTab("feed")} icon={Sparkles}>Project Feed</SecondaryButton>
       </div>
 
-      <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>All clubs</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {clubs.map((c) => (
-          <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
-        ))}
-      </div>
+      {tab === "clubs" && (
+        <>
+          <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>Suggested for {profile.major}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            {clubs.filter((c) => c.major === profile.major).map((c) => (
+              <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
+            ))}
+          </div>
+
+          <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>All clubs</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {clubs.map((c) => (
+              <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {tab === "feed" && (
+        <ProjectFeed profile={profile} clubs={clubs} posts={posts} setPosts={setPosts} pushNotification={pushNotification} />
+      )}
 
       {showCreate && (
         <CreateClubModal
@@ -1503,6 +1550,116 @@ function ClubsView({ profile, clubs, setClubs }) {
           onSubmit={(c) => { setClubs((prev) => [c, ...prev]); setShowCreate(false); }}
         />
       )}
+    </div>
+  );
+}
+
+function ProjectFeed({ profile, clubs, posts, setPosts, pushNotification }) {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [clubTag, setClubTag] = useState("");
+
+  const post = () => {
+    if (!title.trim() || !body.trim()) return;
+    const newPost = {
+      id: "p" + Date.now(),
+      author: profile.name,
+      college: profile.college || profile.companyName,
+      title: title.trim(),
+      body: body.trim(),
+      club: clubTag || null,
+      likes: 0,
+      likedByMe: false,
+      ts: Date.now(),
+    };
+    setPosts((prev) => [newPost, ...prev]);
+    setTitle("");
+    setBody("");
+    setClubTag("");
+
+    // Simulate someone from the network reacting to the post a little later.
+    const reactors = initialNetwork.filter((p) => p.name !== profile.name);
+    const reactor = reactors[Math.floor(Math.random() * reactors.length)];
+    const delay = 3000 + Math.random() * 3000;
+    setTimeout(() => {
+      setPosts((prev) => prev.map((p) => (p.id === newPost.id ? { ...p, likes: p.likes + 1 } : p)));
+      pushNotification({
+        text: `${reactor.name} liked your project "${newPost.title}"`,
+        icon: Heart,
+        iconBg: C.coralSoft,
+      });
+    }, delay);
+  };
+
+  const toggleLike = (id) => {
+    setPosts((prev) => prev.map((p) => {
+      if (p.id !== id) return p;
+      const likedByMe = !p.likedByMe;
+      return { ...p, likedByMe, likes: p.likes + (likedByMe ? 1 : -1) };
+    }));
+  };
+
+  return (
+    <div className="max-w-2xl">
+      <Card className="mb-5">
+        <div className="flex items-start gap-3">
+          <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: C.marigold, color: C.ink }}>
+            {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <input
+              style={{ ...inputStyle, marginBottom: 8, fontWeight: 600 }}
+              placeholder="Project title — what did you build?"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+            <textarea
+              style={{ ...inputStyle, minHeight: 70, marginBottom: 8 }}
+              placeholder="Tell people what it does, what you used, or what help you're looking for..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+            />
+            <div className="flex flex-col sm:flex-row gap-2">
+              <select style={{ ...inputStyle, flex: 1 }} value={clubTag} onChange={(e) => setClubTag(e.target.value)}>
+                <option value="">No club tag</option>
+                {clubs.map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+              </select>
+              <PrimaryButton onClick={post} icon={Sparkles} style={{ backgroundColor: C.marigold, color: C.ink }}>Post project</PrimaryButton>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <div className="space-y-4">
+        {posts.length === 0 && <p className="text-sm" style={{ color: C.textMuted }}>No projects posted yet — be the first to share what you're building.</p>}
+        {posts.map((p) => (
+          <Card key={p.id}>
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: C.tealSoft, color: C.teal }}>
+                {p.author.split(" ").map((x) => x[0]).join("").slice(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                  <span className="font-bold text-sm" style={{ color: C.ink }}>{p.author}</span>
+                  <span className="text-xs" style={{ color: C.textMuted }}>{p.college}</span>
+                  <span className="text-xs" style={{ color: C.textMuted }}>· {timeAgo(p.ts)}</span>
+                </div>
+                <h4 className="font-extrabold text-sm mt-1.5" style={{ color: C.ink }}>{p.title}</h4>
+                <p className="text-sm mt-1" style={{ color: C.inkSoft }}>{p.body}</p>
+                {p.club && <div className="mt-2"><Badge bg={C.paper} fg={C.inkSoft}>{p.club}</Badge></div>}
+                <div className="flex items-center gap-4 mt-3">
+                  <button onClick={() => toggleLike(p.id)} className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: p.likedByMe ? C.coral : C.textMuted }}>
+                    <Heart size={15} fill={p.likedByMe ? C.coral : "none"} /> {p.likes}
+                  </button>
+                  <span className="flex items-center gap-1.5 text-xs font-semibold" style={{ color: C.textMuted }}>
+                    <MessageSquare size={15} /> Reply
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1735,6 +1892,7 @@ export default function App() {
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [applications, setApplications] = useState([]);
   const [clubs, setClubs] = useState(initialClubs);
+  const [projectPosts, setProjectPosts] = useState(initialProjectPosts);
   const [channels, setChannels] = useState(seedChannels());
   const [cvModalOpp, setCvModalOpp] = useState(null);
   const [cvModalOpen, setCvModalOpen] = useState(false);
@@ -1799,7 +1957,7 @@ export default function App() {
           />
         )}
         {view === "chat" && profile.role !== "Company" && <ChatView profile={profile} channels={channels} setChannels={setChannels} />}
-        {view === "clubs" && profile.role !== "Company" && <ClubsView profile={profile} clubs={clubs} setClubs={setClubs} />}
+        {view === "clubs" && profile.role !== "Company" && <ClubsView profile={profile} clubs={clubs} setClubs={setClubs} posts={projectPosts} setPosts={setProjectPosts} pushNotification={pushNotification} />}
         {view === "network" && <NetworkView profile={profile} people={initialNetwork} onConnect={handleConnect} />}
         {view === "profile" && <ProfileView profile={profile} applications={applications} onNeedCv={() => requestCv(null)} />}
         {view === "professor" && profile.role === "Professor" && <PosterDashboard profile={profile} opportunities={opportunities} />}
