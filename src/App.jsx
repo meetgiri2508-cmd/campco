@@ -3,7 +3,7 @@ import {
   Home, Briefcase, MessageCircle, Users, UserPlus, User, GraduationCap,
   Search, Plus, X, Upload, CheckCircle2, Send, Award, Building2, Calendar,
   MapPin, Tag, ChevronRight, Star, ShieldCheck, FileText, Hash, ThumbsUp,
-  ArrowLeft, Sparkles, Bell, UserCheck
+  ArrowLeft, Sparkles, Bell, UserCheck, Menu
 } from "lucide-react";
 
 // ---------- Design tokens ----------
@@ -232,6 +232,149 @@ const initialOpportunities = [
     majors: ["Electronics Engineering", "BSc Physics", "Biotechnology"],
     postedBy: "Prof. Kavita Iyer",
     isResearch: true,
+    verified: true,
+  },
+  {
+    id: "o5",
+    type: "Internship",
+    title: "Software Testing Intern",
+    org: "Wipro",
+    description: "Join the QA automation team writing test suites for enterprise SaaS products.",
+    stipend: "₹15,000/mo",
+    duration: "3 months",
+    deadline: "2026-09-25",
+    majors: ["Computer Engineering", "Information Technology", "BSc Information Technology"],
+    postedBy: "Wipro",
+    verified: true,
+  },
+  {
+    id: "o6",
+    type: "Internship",
+    title: "Cloud Support Intern",
+    org: "Tata Consultancy Services (TCS)",
+    description: "Assist enterprise clients with AWS/Azure migration tickets and basic scripting fixes.",
+    stipend: "₹20,000/mo",
+    duration: "6 months",
+    deadline: "2026-10-01",
+    majors: ["Computer Engineering", "Information Technology", "AI & Machine Learning"],
+    postedBy: "Tata Consultancy Services (TCS)",
+    verified: true,
+  },
+  {
+    id: "o7",
+    type: "Internship",
+    title: "Credit Risk Analyst Intern",
+    org: "HDFC Bank",
+    description: "Support the retail lending team with credit scoring models and portfolio reports.",
+    stipend: "₹20,000/mo",
+    duration: "4 months",
+    deadline: "2026-09-18",
+    majors: ["Commerce", "Economics", "BFM (Financial Markets)", "BCom Banking & Insurance"],
+    postedBy: "HDFC Bank",
+    verified: true,
+  },
+  {
+    id: "o8",
+    type: "Internship",
+    title: "Digital Marketing Intern",
+    org: "ICICI Bank",
+    description: "Run campaign analytics and content calendars for ICICI's digital banking products.",
+    stipend: "₹12,000/mo",
+    duration: "3 months",
+    deadline: "2026-09-12",
+    majors: ["BMS (Management Studies)", "Mass Media (BMM)", "Commerce"],
+    postedBy: "ICICI Bank",
+    verified: true,
+  },
+  {
+    id: "o9",
+    type: "Internship",
+    title: "Site Engineering Intern",
+    org: "Larsen & Toubro (L&T)",
+    description: "Shadow site engineers on an ongoing Mumbai metro civil works package — surveying, quality checks, and daily progress reporting.",
+    stipend: "₹18,000/mo",
+    duration: "6 months",
+    deadline: "2026-10-05",
+    majors: ["Civil Engineering"],
+    postedBy: "Larsen & Toubro (L&T)",
+    verified: true,
+  },
+  {
+    id: "o10",
+    type: "Internship",
+    title: "Product Design Intern",
+    org: "Godrej",
+    description: "Work with the appliances design studio on CAD models, prototyping, and user testing for a new refrigerator line.",
+    stipend: "₹16,000/mo",
+    duration: "4 months",
+    deadline: "2026-09-28",
+    majors: ["Mechanical Engineering", "Production Engineering", "Interior Design"],
+    postedBy: "Godrej",
+    verified: true,
+  },
+  {
+    id: "o11",
+    type: "Internship",
+    title: "Automobile R&D Intern",
+    org: "Mahindra & Mahindra",
+    description: "Support the EV powertrain team with bench testing, data logging, and report writing.",
+    stipend: "₹22,000/mo",
+    duration: "6 months",
+    deadline: "2026-10-10",
+    majors: ["Automobile Engineering", "Mechanical Engineering", "Electrical Engineering"],
+    postedBy: "Mahindra & Mahindra",
+    verified: true,
+  },
+  {
+    id: "o12",
+    type: "Internship",
+    title: "Process Engineering Intern",
+    org: "Reliance Industries",
+    description: "Assist plant engineers with process optimization studies and safety audits at a petrochemical facility near Mumbai.",
+    stipend: "₹25,000/mo",
+    duration: "5 months",
+    deadline: "2026-09-30",
+    majors: ["Chemical Engineering", "Instrumentation Engineering"],
+    postedBy: "Reliance Industries",
+    verified: true,
+  },
+  {
+    id: "o13",
+    type: "Internship",
+    title: "Supply Chain Analytics Intern",
+    org: "Zepto",
+    description: "Build dashboards forecasting dark-store demand and delivery times across Mumbai zones.",
+    stipend: "₹22,000/mo",
+    duration: "3 months",
+    deadline: "2026-09-22",
+    majors: ["BSc Statistics", "Commerce", "Computer Engineering", "Economics"],
+    postedBy: "Zepto Careers",
+    verified: true,
+  },
+  {
+    id: "o14",
+    type: "Internship",
+    title: "Legal & Compliance Intern",
+    org: "Kotak Mahindra Bank",
+    description: "Assist the compliance desk with regulatory filings, contract review, and KYC policy documentation.",
+    stipend: "₹15,000/mo",
+    duration: "3 months",
+    deadline: "2026-09-16",
+    majors: ["BA LLB", "BBA LLB", "LLB"],
+    postedBy: "Kotak Campus Hiring",
+    verified: true,
+  },
+  {
+    id: "o15",
+    type: "Internship",
+    title: "Content & Social Media Intern",
+    org: "Zepto",
+    description: "Write and schedule social content, and help plan influencer collabs for city-specific campaigns.",
+    stipend: "₹10,000/mo",
+    duration: "3 months",
+    deadline: "2026-09-14",
+    majors: ["Mass Media (BMM)", "English Literature", "BMS (Management Studies)"],
+    postedBy: "Zepto Careers",
     verified: true,
   },
 ];
@@ -704,10 +847,13 @@ function Sidebar({ view, setView, profile, notifications, unreadCount, onOpenNot
 }
 
 // ---------- Mobile top bar + bottom nav ----------
-function MobileTopBar({ profile, setView, notifications, unreadCount, onOpenNotifications }) {
+function MobileTopBar({ profile, setView, notifications, unreadCount, onOpenNotifications, onOpenMenu }) {
   return (
     <div className="flex md:hidden items-center justify-between px-4 py-3 fixed top-0 left-0 right-0 z-30" style={{ backgroundColor: C.ink }}>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2.5">
+        <button onClick={onOpenMenu} className="p-1 -ml-1" style={{ color: C.paper }} aria-label="Open menu">
+          <Menu size={22} />
+        </button>
         <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: C.marigold }}>
           <GraduationCap size={16} color={C.ink} />
         </div>
@@ -726,29 +872,74 @@ function MobileTopBar({ profile, setView, notifications, unreadCount, onOpenNoti
   );
 }
 
-function MobileBottomNav({ view, setView, profile }) {
+function MobileDrawer({ open, onClose, view, setView, profile }) {
   const items = navItemsFor(profile);
   return (
-    <div
-      className="flex md:hidden fixed bottom-0 left-0 right-0 z-30 items-stretch"
-      style={{ backgroundColor: C.ink, paddingBottom: "env(safe-area-inset-bottom, 0px)", borderTop: `1px solid ${C.inkSoft}` }}
-    >
-      {items.map((it) => {
-        const Icon = it.icon;
-        const active = view === it.id;
-        return (
-          <button
-            key={it.id}
-            onClick={() => setView(it.id)}
-            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
-            style={{ color: active ? C.marigold : "#9A9AC4" }}
-          >
-            <Icon size={18} />
-            <span className="text-[9.5px] font-semibold leading-none">{it.label}</span>
+    <>
+      <div
+        className="md:hidden fixed inset-0 z-40 transition-opacity duration-200"
+        style={{ backgroundColor: "rgba(27,27,58,0.55)", opacity: open ? 1 : 0, pointerEvents: open ? "auto" : "none" }}
+        onClick={onClose}
+      />
+      <div
+        className="md:hidden fixed top-0 left-0 bottom-0 z-50 w-72 max-w-[82vw] flex flex-col transition-transform duration-250 ease-out"
+        style={{ backgroundColor: C.ink, transform: open ? "translateX(0)" : "translateX(-100%)" }}
+      >
+        <div className="flex items-center justify-between gap-2 px-5 py-5">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: C.marigold }}>
+              <GraduationCap size={18} color={C.ink} />
+            </div>
+            <span className="font-extrabold text-lg truncate" style={{ color: C.paper }}>CampusConnect</span>
+          </div>
+          <button onClick={onClose} className="p-1 shrink-0" style={{ color: "#C9C9E8" }}>
+            <X size={20} />
           </button>
-        );
-      })}
-    </div>
+        </div>
+        <nav className="flex-1 px-3 space-y-1 mt-2 overflow-y-auto">
+          {items.map((it) => {
+            const Icon = it.icon;
+            const active = view === it.id;
+            return (
+              <button
+                key={it.id}
+                onClick={() => { setView(it.id); onClose(); }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={{
+                  backgroundColor: active ? C.inkSoft : "transparent",
+                  color: active ? C.marigold : "#C9C9E8",
+                  borderLeft: active ? `3px solid ${C.marigold}` : "3px solid transparent",
+                }}
+              >
+                <Icon size={17} />
+                {it.label === "Internships" ? "Internships & Research" : it.label === "Chat" ? "Major Chat" : it.label === "Profile" ? "My Profile" : it.label === "Faculty" ? "Professor Dashboard" : it.label === "Company" ? "Company Dashboard" : it.label}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="p-4 mx-3 mb-4 rounded-xl" style={{ backgroundColor: C.inkSoft }}>
+          <div className="flex items-center gap-1.5">
+            <div className="text-sm font-bold" style={{ color: C.paper }}>{profile.name}</div>
+            {(profile.role === "Company" || profile.role === "Professor") && (
+              profile.isVerified
+                ? <ShieldCheck size={13} style={{ color: C.marigold }} />
+                : <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: C.coral, color: C.paper }}>PENDING</span>
+            )}
+          </div>
+          {profile.role === "Company" ? (
+            <>
+              <div className="text-xs mt-0.5" style={{ color: "#A6A6D1" }}>{profile.companyName}</div>
+              <div className="text-xs" style={{ color: "#A6A6D1" }}>{profile.industry}</div>
+            </>
+          ) : (
+            <>
+              <div className="text-xs mt-0.5" style={{ color: "#A6A6D1" }}>{profile.major}</div>
+              <div className="text-xs" style={{ color: "#A6A6D1" }}>{profile.college}</div>
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -1107,7 +1298,7 @@ function ChatView({ profile, channels, setChannels }) {
   const activeThread = openThread ? channel.threads.find((t) => t.id === openThread) : null;
 
   return (
-    <div className="max-w-6xl h-[calc(100vh-8.5rem)] md:h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-0 md:gap-5">
+    <div className="max-w-6xl h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-0 md:gap-5">
       {/* channel list */}
       <div className={`${mobileShowList ? "flex" : "hidden"} md:flex w-full md:w-64 shrink-0 flex-col`}>
         <Eyebrow>Major channels ({MAJORS.length})</Eyebrow>
@@ -1549,6 +1740,7 @@ export default function App() {
   const [cvModalOpen, setCvModalOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [toast, setToast] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   if (!profile) {
     return <Onboarding onComplete={setProfile} />;
@@ -1591,9 +1783,10 @@ export default function App() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen" style={{ backgroundColor: C.paper, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <Sidebar view={view} setView={setView} profile={profile} notifications={notifications} unreadCount={unreadCount} onOpenNotifications={markAllRead} />
-      <MobileTopBar profile={profile} setView={setView} notifications={notifications} unreadCount={unreadCount} onOpenNotifications={markAllRead} />
+      <MobileTopBar profile={profile} setView={setView} notifications={notifications} unreadCount={unreadCount} onOpenNotifications={markAllRead} onOpenMenu={() => setMobileMenuOpen(true)} />
+      <MobileDrawer open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} view={view} setView={setView} profile={profile} />
       <NotificationToast toast={toast} />
-      <div className="flex-1 p-4 pt-16 pb-20 sm:p-6 sm:pt-16 sm:pb-20 md:p-8 md:pt-8 md:pb-8 overflow-y-auto">
+      <div className="flex-1 p-4 pt-16 sm:p-6 sm:pt-16 md:p-8 md:pt-8 overflow-y-auto">
         {view === "home" && <HomeView profile={profile} setView={setView} opportunities={opportunities} />}
         {view === "opportunities" && (
           <OpportunitiesView
@@ -1612,7 +1805,6 @@ export default function App() {
         {view === "professor" && profile.role === "Professor" && <PosterDashboard profile={profile} opportunities={opportunities} />}
         {view === "company" && profile.role === "Company" && <PosterDashboard profile={profile} opportunities={opportunities} />}
       </div>
-      <MobileBottomNav view={view} setView={setView} profile={profile} />
       {cvModalOpen && <CvGateModal onUpload={handleCvUpload} onClose={() => setCvModalOpen(false)} />}
     </div>
   );
