@@ -321,7 +321,7 @@ function Badge({ children, bg, fg }) {
 function Card({ children, pinned, className = "", style = {} }) {
   return (
     <div
-      className={`relative rounded-2xl p-5 ${className}`}
+      className={`relative rounded-2xl p-4 sm:p-5 ${className}`}
       style={{ backgroundColor: C.paperCard, border: `1px solid ${C.paperLine}`, boxShadow: "0 1px 2px rgba(27,27,58,0.06)", ...style }}
     >
       {pinned && <Pin />}
@@ -363,15 +363,15 @@ function SecondaryButton({ children, onClick, icon: Icon, active }) {
 
 function Modal({ title, onClose, children, wide }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(27,27,58,0.55)" }}>
-      <div className={`rounded-2xl w-full ${wide ? "max-w-2xl" : "max-w-md"} max-h-[85vh] overflow-y-auto`} style={{ backgroundColor: C.paperCard }}>
-        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: C.paperLine }}>
-          <h3 className="font-extrabold text-lg" style={{ color: C.ink }}>{title}</h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70" style={{ color: C.inkSoft }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ backgroundColor: "rgba(27,27,58,0.55)" }}>
+      <div className={`rounded-t-2xl sm:rounded-2xl w-full ${wide ? "sm:max-w-2xl" : "sm:max-w-md"} max-h-[90vh] overflow-y-auto`} style={{ backgroundColor: C.paperCard }}>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b sticky top-0" style={{ borderColor: C.paperLine, backgroundColor: C.paperCard }}>
+          <h3 className="font-extrabold text-base sm:text-lg" style={{ color: C.ink }}>{title}</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70 shrink-0" style={{ color: C.inkSoft }}>
             <X size={20} />
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );
@@ -437,7 +437,7 @@ function Onboarding({ onComplete }) {
           </div>
           <span className="font-extrabold text-xl tracking-tight" style={{ color: C.paper }}>CampusConnect</span>
         </div>
-        <div className="rounded-2xl p-7" style={{ backgroundColor: C.paperCard }}>
+        <div className="rounded-2xl p-5 sm:p-7" style={{ backgroundColor: C.paperCard }}>
           <Eyebrow>Before you get in</Eyebrow>
           <h1 className="font-black text-2xl mb-1" style={{ color: C.ink }}>{role === "Company" ? "Tell us about your company" : "Tell us your college & major"}</h1>
           <p className="text-sm mb-5" style={{ color: C.textMuted }}>
@@ -537,19 +537,24 @@ function Onboarding({ onComplete }) {
 }
 
 // ---------- Sidebar ----------
-function Sidebar({ view, setView, profile }) {
-  const items = [{ id: "home", label: "Home", icon: Home }, { id: "opportunities", label: "Internships & Research", icon: Briefcase }];
+function navItemsFor(profile) {
+  const items = [{ id: "home", label: "Home", icon: Home }, { id: "opportunities", label: "Internships", icon: Briefcase }];
   if (profile.role !== "Company") {
-    items.push({ id: "chat", label: "Major Chat", icon: MessageCircle });
+    items.push({ id: "chat", label: "Chat", icon: MessageCircle });
     items.push({ id: "clubs", label: "Clubs", icon: Users });
   }
   items.push({ id: "network", label: "Network", icon: UserPlus });
-  items.push({ id: "profile", label: "My Profile", icon: User });
-  if (profile.role === "Professor") items.push({ id: "professor", label: "Professor Dashboard", icon: ShieldCheck });
-  if (profile.role === "Company") items.push({ id: "company", label: "Company Dashboard", icon: ShieldCheck });
+  items.push({ id: "profile", label: "Profile", icon: User });
+  if (profile.role === "Professor") items.push({ id: "professor", label: "Faculty", icon: ShieldCheck });
+  if (profile.role === "Company") items.push({ id: "company", label: "Company", icon: ShieldCheck });
+  return items;
+}
+
+function Sidebar({ view, setView, profile }) {
+  const items = navItemsFor(profile);
 
   return (
-    <div className="w-64 shrink-0 flex flex-col h-screen sticky top-0" style={{ backgroundColor: C.ink }}>
+    <div className="hidden md:flex w-64 shrink-0 flex-col h-screen sticky top-0" style={{ backgroundColor: C.ink }}>
       <div className="flex items-center gap-2 px-5 py-5">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: C.marigold }}>
           <GraduationCap size={18} color={C.ink} />
@@ -572,7 +577,7 @@ function Sidebar({ view, setView, profile }) {
               }}
             >
               <Icon size={17} />
-              {it.label}
+              {it.label === "Internships" ? "Internships & Research" : it.label === "Chat" ? "Major Chat" : it.label === "Profile" ? "My Profile" : it.label === "Faculty" ? "Professor Dashboard" : it.label === "Company" ? "Company Dashboard" : it.label}
             </button>
           );
         })}
@@ -602,6 +607,52 @@ function Sidebar({ view, setView, profile }) {
   );
 }
 
+// ---------- Mobile top bar + bottom nav ----------
+function MobileTopBar({ profile, setView }) {
+  return (
+    <div className="flex md:hidden items-center justify-between px-4 py-3 fixed top-0 left-0 right-0 z-30" style={{ backgroundColor: C.ink }}>
+      <div className="flex items-center gap-2">
+        <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: C.marigold }}>
+          <GraduationCap size={16} color={C.ink} />
+        </div>
+        <span className="font-extrabold text-base" style={{ color: C.paper }}>CampusConnect</span>
+      </div>
+      <button onClick={() => setView("profile")} className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 relative" style={{ backgroundColor: C.marigold, color: C.ink }}>
+        {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+        {(profile.role === "Company" || profile.role === "Professor") && !profile.isVerified && (
+          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: C.coral, borderColor: C.ink }} />
+        )}
+      </button>
+    </div>
+  );
+}
+
+function MobileBottomNav({ view, setView, profile }) {
+  const items = navItemsFor(profile);
+  return (
+    <div
+      className="flex md:hidden fixed bottom-0 left-0 right-0 z-30 items-stretch"
+      style={{ backgroundColor: C.ink, paddingBottom: "env(safe-area-inset-bottom, 0px)", borderTop: `1px solid ${C.inkSoft}` }}
+    >
+      {items.map((it) => {
+        const Icon = it.icon;
+        const active = view === it.id;
+        return (
+          <button
+            key={it.id}
+            onClick={() => setView(it.id)}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2"
+            style={{ color: active ? C.marigold : "#9A9AC4" }}
+          >
+            <Icon size={18} />
+            <span className="text-[9.5px] font-semibold leading-none">{it.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ---------- Home ----------
 function HomeView({ profile, setView, opportunities }) {
   const isCompany = profile.role === "Company";
@@ -612,14 +663,14 @@ function HomeView({ profile, setView, opportunities }) {
   return (
     <div className="max-w-4xl">
       <Eyebrow>Welcome back</Eyebrow>
-      <h1 className="font-black text-3xl mb-1" style={{ color: C.ink }}>Namaste, {profile.name.split(" ")[0]} 👋</h1>
+      <h1 className="font-black text-2xl sm:text-3xl mb-1" style={{ color: C.ink }}>Namaste, {profile.name.split(" ")[0]} 👋</h1>
       <p className="mb-8" style={{ color: C.textMuted }}>
         {isCompany
           ? `Here's the latest for ${profile.companyName} on CampusConnect.`
           : `Here's what's relevant to ${profile.major} students at ${profile.college} today.`}
       </p>
 
-      <div className="grid grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-8">
         {isCompany ? (
           [
             { label: "Verification status", value: profile.isVerified ? "Verified" : "Pending review", icon: ShieldCheck, color: profile.isVerified ? C.teal : C.coral },
@@ -740,7 +791,7 @@ function PostOpportunityModal({ onClose, onSubmit, profile }) {
   const toggleMajor = (m) => setForm((f) => ({ ...f, majors: f.majors.includes(m) ? f.majors.filter((x) => x !== m) : [...f.majors, m] }));
   return (
     <Modal title="Post an opportunity" onClose={onClose} wide>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Field label="Type">
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-semibold" style={{ backgroundColor: C.tealSoft, color: C.teal }}>
             {lockedType}
@@ -758,7 +809,7 @@ function PostOpportunityModal({ onClose, onSubmit, profile }) {
       <Field label="Description">
         <textarea style={{ ...inputStyle, minHeight: 80 }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="What will the student work on?" />
       </Field>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Field label="Stipend"><input style={inputStyle} value={form.stipend} onChange={(e) => setForm({ ...form, stipend: e.target.value })} placeholder="₹15,000/mo" /></Field>
         <Field label="Duration"><input style={inputStyle} value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} placeholder="3 months" /></Field>
         <Field label="Deadline"><input type="date" style={inputStyle} value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} /></Field>
@@ -818,10 +869,10 @@ function OpportunitiesView({ profile, opportunities, setOpportunities, applicati
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-start justify-between gap-3 mb-6">
         <div>
           <Eyebrow color={C.coral}>Board</Eyebrow>
-          <h1 className="font-black text-3xl" style={{ color: C.ink }}>Internships & Research</h1>
+          <h1 className="font-black text-2xl sm:text-3xl" style={{ color: C.ink }}>Internships & Research</h1>
           <p className="text-xs mt-1" style={{ color: C.textMuted }}>Only verified companies and professors can post here.</p>
         </div>
         {profile.role === "Company" || profile.role === "Professor" ? (
@@ -837,7 +888,7 @@ function OpportunitiesView({ profile, opportunities, setOpportunities, applicati
         <SecondaryButton active={filterType === "All"} onClick={() => setFilterType("All")}>All types</SecondaryButton>
         <SecondaryButton active={filterType === "Internship"} onClick={() => setFilterType("Internship")}>Internships</SecondaryButton>
         <SecondaryButton active={filterType === "Research"} onClick={() => setFilterType("Research")}>Research</SecondaryButton>
-        <span className="mx-1 text-sm" style={{ color: C.paperLine }}>|</span>
+        <span className="mx-1 text-sm hidden sm:inline" style={{ color: C.paperLine }}>|</span>
         <select style={{ ...inputStyle, width: "auto", padding: "7px 10px" }} value={filterMajor} onChange={(e) => setFilterMajor(e.target.value)}>
           <option value="All">All majors</option>
           {Object.entries(BRANCH_GROUPS).map(([group, list]) => (
@@ -853,14 +904,14 @@ function OpportunitiesView({ profile, opportunities, setOpportunities, applicati
           const applied = applications.find((a) => a.oppId === o.id);
           return (
             <Card key={o.id} pinned>
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
+              <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
                     <Badge bg={o.isResearch ? C.tealSoft : C.coralSoft} fg={o.isResearch ? C.teal : C.coral}>{o.type}</Badge>
                     {o.majors.map((m) => <Badge key={m} bg={C.paper} fg={C.inkSoft}>{m}</Badge>)}
                   </div>
-                  <h3 className="font-extrabold text-lg" style={{ color: C.ink }}>{o.title}</h3>
-                  <div className="flex items-center gap-1 text-sm mb-2" style={{ color: C.textMuted }}>
+                  <h3 className="font-extrabold text-base sm:text-lg" style={{ color: C.ink }}>{o.title}</h3>
+                  <div className="flex flex-wrap items-center gap-1 text-sm mb-2" style={{ color: C.textMuted }}>
                     <Building2 size={13} /> {o.org}
                     {o.verified && (
                       <span className="inline-flex items-center gap-0.5 ml-1" style={{ color: C.teal }} title="Verified poster">
@@ -869,19 +920,19 @@ function OpportunitiesView({ profile, opportunities, setOpportunities, applicati
                     )}
                   </div>
                   <p className="text-sm mb-3" style={{ color: C.inkSoft }}>{o.description}</p>
-                  <div className="flex items-center gap-4 text-xs" style={{ color: C.textMuted }}>
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs" style={{ color: C.textMuted }}>
                     <span className="flex items-center gap-1"><Award size={12} /> {o.stipend}</span>
                     <span className="flex items-center gap-1"><Calendar size={12} /> {o.duration}</span>
                     <span className="flex items-center gap-1"><Tag size={12} /> Deadline {o.deadline}</span>
                   </div>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 w-full sm:w-auto">
                   {applied ? (
                     <Badge bg={C.tealSoft} fg={C.teal}>
                       <span className="inline-flex items-center gap-1"><CheckCircle2 size={12} /> {applied.status}</span>
                     </Badge>
                   ) : (
-                    <PrimaryButton onClick={() => apply(o)} style={{ backgroundColor: C.marigold, color: C.ink }}>Apply</PrimaryButton>
+                    <PrimaryButton onClick={() => apply(o)} style={{ backgroundColor: C.marigold, color: C.ink, width: "100%" }}>Apply</PrimaryButton>
                   )}
                 </div>
               </div>
@@ -911,6 +962,7 @@ function ChatView({ profile, channels, setChannels }) {
   const [showNewThread, setShowNewThread] = useState(false);
   const [reply, setReply] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
+  const [mobileShowList, setMobileShowList] = useState(true);
 
   const channel = channels[active];
 
@@ -956,9 +1008,9 @@ function ChatView({ profile, channels, setChannels }) {
   const activeThread = openThread ? channel.threads.find((t) => t.id === openThread) : null;
 
   return (
-    <div className="max-w-6xl h-[calc(100vh-4rem)] flex gap-5">
+    <div className="max-w-6xl h-[calc(100vh-8.5rem)] md:h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-0 md:gap-5">
       {/* channel list */}
-      <div className="w-64 shrink-0 flex flex-col">
+      <div className={`${mobileShowList ? "flex" : "hidden"} md:flex w-full md:w-64 shrink-0 flex-col`}>
         <Eyebrow>Major channels ({MAJORS.length})</Eyebrow>
         <div className="relative mt-2 mb-2">
           <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
@@ -969,7 +1021,7 @@ function ChatView({ profile, channels, setChannels }) {
             onChange={(e) => setChannelSearch(e.target.value)}
           />
         </div>
-        <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: "calc(100vh - 12rem)" }}>
+        <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: "calc(100vh - 14rem)" }}>
           {Object.entries(BRANCH_GROUPS).map(([group, list]) => {
             const visible = list.filter((m) => m.toLowerCase().includes(channelSearch.toLowerCase()));
             if (visible.length === 0) return null;
@@ -980,7 +1032,7 @@ function ChatView({ profile, channels, setChannels }) {
                   {visible.map((m) => (
                     <button
                       key={m}
-                      onClick={() => { setActive(m); setOpenThread(null); }}
+                      onClick={() => { setActive(m); setOpenThread(null); setMobileShowList(false); }}
                       className="w-full text-left px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2"
                       style={{ backgroundColor: active === m ? C.tealSoft : "transparent", color: active === m ? C.teal : C.inkSoft }}
                     >
@@ -996,37 +1048,40 @@ function ChatView({ profile, channels, setChannels }) {
       </div>
 
       {/* main pane */}
-      <div className="flex-1 flex flex-col rounded-2xl overflow-hidden" style={{ backgroundColor: C.paperCard, border: `1px solid ${C.paperLine}` }}>
-        <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: C.paperLine }}>
-          <div>
-            <h2 className="font-extrabold" style={{ color: C.ink }}># {active}</h2>
+      <div className={`${mobileShowList ? "hidden" : "flex"} md:flex flex-1 flex-col rounded-2xl overflow-hidden md:border`} style={{ backgroundColor: C.paperCard, borderColor: C.paperLine }}>
+        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b flex items-center justify-between gap-2" style={{ borderColor: C.paperLine }}>
+          <div className="flex items-center gap-2 min-w-0">
+            <button onClick={() => setMobileShowList(true)} className="md:hidden p-1 -ml-1 shrink-0" style={{ color: C.inkSoft }}>
+              <ArrowLeft size={18} />
+            </button>
+            <h2 className="font-extrabold truncate text-sm sm:text-base" style={{ color: C.ink }}># {active}</h2>
           </div>
-          <div className="flex gap-2">
-            <SecondaryButton active={tab === "chat"} onClick={() => setTab("chat")} icon={MessageCircle}>Live chat</SecondaryButton>
-            <SecondaryButton active={tab === "qa"} onClick={() => { setTab("qa"); setOpenThread(null); }} icon={Sparkles}>Q&A threads</SecondaryButton>
+          <div className="flex gap-1.5 sm:gap-2 shrink-0">
+            <SecondaryButton active={tab === "chat"} onClick={() => setTab("chat")} icon={MessageCircle}><span className="hidden sm:inline">Live chat</span></SecondaryButton>
+            <SecondaryButton active={tab === "qa"} onClick={() => { setTab("qa"); setOpenThread(null); }} icon={Sparkles}><span className="hidden sm:inline">Q&A threads</span></SecondaryButton>
           </div>
         </div>
 
         {tab === "chat" && (
           <>
-            <div className="flex-1 overflow-y-auto p-5 space-y-3">
+            <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3">
               {channel.messages.length === 0 && <p className="text-sm" style={{ color: C.textMuted }}>No messages yet — say hi to your {active} batchmates.</p>}
               {channel.messages.map((m) => (
                 <div key={m.id} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-xs" style={{ backgroundColor: C.marigold, color: C.ink }}>
                     {m.user.split(" ").map((p) => p[0]).join("").slice(0, 2)}
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="flex items-baseline gap-2">
                       <span className="font-bold text-sm" style={{ color: C.ink }}>{m.user}</span>
                       <span className="text-xs" style={{ color: C.textMuted }}>{m.time}</span>
                     </div>
-                    <p className="text-sm" style={{ color: C.inkSoft }}>{m.text}</p>
+                    <p className="text-sm break-words" style={{ color: C.inkSoft }}>{m.text}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="p-4 border-t flex gap-2" style={{ borderColor: C.paperLine }}>
+            <div className="p-3 sm:p-4 border-t flex gap-2" style={{ borderColor: C.paperLine }}>
               <input
                 style={{ ...inputStyle, flex: 1 }}
                 placeholder={`Message #${active}`}
@@ -1034,13 +1089,13 @@ function ChatView({ profile, channels, setChannels }) {
                 onChange={(e) => setMsg(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMsg()}
               />
-              <PrimaryButton icon={Send} onClick={sendMsg}>Send</PrimaryButton>
+              <PrimaryButton icon={Send} onClick={sendMsg}><span className="hidden sm:inline">Send</span></PrimaryButton>
             </div>
           </>
         )}
 
         {tab === "qa" && !activeThread && (
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-5">
             <div className="flex justify-end mb-4">
               <PrimaryButton icon={Plus} onClick={() => setShowNewThread(true)}>Ask a question</PrimaryButton>
             </div>
@@ -1063,7 +1118,7 @@ function ChatView({ profile, channels, setChannels }) {
         )}
 
         {tab === "qa" && activeThread && (
-          <div className="flex-1 overflow-y-auto p-5">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-5">
             <button onClick={() => setOpenThread(null)} className="flex items-center gap-1 text-sm font-semibold mb-4" style={{ color: C.teal }}>
               <ArrowLeft size={14} /> Back to threads
             </button>
@@ -1074,7 +1129,7 @@ function ChatView({ profile, channels, setChannels }) {
             <div className="space-y-3 mb-5">
               {activeThread.replies.map((r) => (
                 <Card key={r.id} style={{ backgroundColor: r.isBest ? C.tealSoft : C.paper, borderColor: r.isBest ? C.teal : C.paperLine }}>
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-bold text-sm" style={{ color: C.ink }}>{r.user}</span>
@@ -1130,23 +1185,23 @@ function ClubsView({ profile, clubs, setClubs }) {
 
   return (
     <div className="max-w-5xl">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 mb-6">
         <div>
           <Eyebrow color={C.marigoldDark}>Community</Eyebrow>
-          <h1 className="font-black text-3xl" style={{ color: C.ink }}>Clubs</h1>
+          <h1 className="font-black text-2xl sm:text-3xl" style={{ color: C.ink }}>Clubs</h1>
         </div>
         <PrimaryButton icon={Plus} onClick={() => setShowCreate(true)}>Create a club</PrimaryButton>
       </div>
 
       <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>Suggested for {profile.major}</h2>
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         {clubs.filter((c) => c.major === profile.major).map((c) => (
           <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
         ))}
       </div>
 
       <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>All clubs</h2>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {clubs.map((c) => (
           <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
         ))}
@@ -1233,12 +1288,12 @@ function NetworkView({ profile, people }) {
   return (
     <div className="max-w-5xl">
       <Eyebrow color={C.coral}>Network</Eyebrow>
-      <h1 className="font-black text-3xl mb-4" style={{ color: C.ink }}>Find people across Mumbai colleges</h1>
+      <h1 className="font-black text-2xl sm:text-3xl mb-4" style={{ color: C.ink }}>Find people across Mumbai colleges</h1>
       <div className="relative mb-6 max-w-md">
         <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
         <input style={{ ...inputStyle, paddingLeft: 34 }} placeholder="Search by name, college, or major" value={query} onChange={(e) => setQuery(e.target.value)} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {filtered.map((p) => (
           <Card key={p.id}>
             <div className="flex items-start gap-3">
@@ -1275,7 +1330,7 @@ function ProfileView({ profile, applications, onNeedCv }) {
     <div className="max-w-3xl">
       <Eyebrow>Your profile</Eyebrow>
       <div className="flex items-center gap-2 mb-6">
-        <h1 className="font-black text-3xl" style={{ color: C.ink }}>{profile.name}</h1>
+        <h1 className="font-black text-2xl sm:text-3xl" style={{ color: C.ink }}>{profile.name}</h1>
         {isPoster && (
           profile.isVerified
             ? <Badge bg={C.tealSoft} fg={C.teal}><span className="inline-flex items-center gap-1"><ShieldCheck size={12} /> Verified</span></Badge>
@@ -1285,14 +1340,14 @@ function ProfileView({ profile, applications, onNeedCv }) {
 
       <Card className="mb-4">
         {isCompany ? (
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Company</span>{profile.companyName}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Industry</span>{profile.industry}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Role</span>{profile.role}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Status</span>{profile.isVerified ? "Verified — can post internships" : "Pending review"}</div>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>College</span>{profile.college}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Major</span>{profile.major}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Year</span>{profile.year}</div>
@@ -1339,7 +1394,7 @@ function PosterDashboard({ profile, opportunities }) {
   return (
     <div className="max-w-4xl">
       <Eyebrow color={C.marigoldDark}>{isCompany ? "Company tools" : "Professor tools"}</Eyebrow>
-      <h1 className="font-black text-3xl mb-2" style={{ color: C.ink }}>{isCompany ? "Company Dashboard" : "Professor Dashboard"}</h1>
+      <h1 className="font-black text-2xl sm:text-3xl mb-2" style={{ color: C.ink }}>{isCompany ? "Company Dashboard" : "Professor Dashboard"}</h1>
       <p className="text-sm mb-6" style={{ color: C.textMuted }}>
         {isCompany
           ? `Post internships from the Internships & Research board once "${identity}" is verified.`
@@ -1405,9 +1460,10 @@ export default function App() {
   };
 
   return (
-    <div className="flex min-h-screen" style={{ backgroundColor: C.paper, fontFamily: "system-ui, -apple-system, sans-serif" }}>
+    <div className="flex flex-col md:flex-row min-h-screen" style={{ backgroundColor: C.paper, fontFamily: "system-ui, -apple-system, sans-serif" }}>
       <Sidebar view={view} setView={setView} profile={profile} />
-      <div className="flex-1 p-8 overflow-y-auto">
+      <MobileTopBar profile={profile} setView={setView} />
+      <div className="flex-1 p-4 pt-16 pb-20 sm:p-6 sm:pt-16 sm:pb-20 md:p-8 md:pt-8 md:pb-8 overflow-y-auto">
         {view === "home" && <HomeView profile={profile} setView={setView} opportunities={opportunities} />}
         {view === "opportunities" && (
           <OpportunitiesView
@@ -1426,6 +1482,7 @@ export default function App() {
         {view === "professor" && profile.role === "Professor" && <PosterDashboard profile={profile} opportunities={opportunities} />}
         {view === "company" && profile.role === "Company" && <PosterDashboard profile={profile} opportunities={opportunities} />}
       </div>
+      <MobileBottomNav view={view} setView={setView} profile={profile} />
       {cvModalOpen && <CvGateModal onUpload={handleCvUpload} onClose={() => setCvModalOpen(false)} />}
     </div>
   );
