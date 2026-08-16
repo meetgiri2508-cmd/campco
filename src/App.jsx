@@ -23,6 +23,51 @@ const C = {
   textMuted: "#6B6B8F",
 };
 
+// Discord-inspired palette, scoped to the Major Chat section only.
+const DC = {
+  bgSidebar: "#2b2d31",
+  bgMain: "#313338",
+  bgMember: "#2b2d31",
+  bgActive: "#404249",
+  bgHover: "#35373c",
+  bgInput: "#383a40",
+  textPrimary: "#f2f3f5",
+  textMuted: "#949ba4",
+  textFaint: "#6d6f78",
+  brand: "#5865f2",
+  online: "#23a55a",
+  divider: "#26272b",
+};
+const AVATAR_COLORS = ["#F2A93B", "#0E7C7B", "#E4572E", "#5865F2", "#57F287", "#EB459E", "#FEE75C"];
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+function colorForName(name) {
+  return AVATAR_COLORS[hashStr(name) % AVATAR_COLORS.length];
+}
+const FILLER_MEMBERS = [
+  "Isha Nair", "Rohan Kulkarni", "Sanaya Katrak", "Arjun Bhatia", "Neha Deshmukh",
+  "Vivaan Shetty", "Ananya Bose", "Yash Chheda", "Priya Menon", "Karan Oberoi",
+  "Tanya Sequeira", "Dev Patil", "Riya Gala", "Aryan Khanna", "Simran Chawla",
+  "Farhan Sheikh", "Ishita Save", "Rutuja More", "Zaid Contractor", "Alisha Pinto",
+];
+function getChannelMembers(channelName, profile) {
+  const matched = initialNetwork.filter((p) => p.major === channelName).map((p) => p.name);
+  const h = hashStr(channelName);
+  const onlineFillerCount = 3 + (h % 5);
+  const offlineCount = 2 + (h % 3);
+  const pool = FILLER_MEMBERS.filter((n) => !matched.includes(n));
+  const start = h % pool.length;
+  const picked = [];
+  for (let i = 0; i < onlineFillerCount + offlineCount; i++) picked.push(pool[(start + i) % pool.length]);
+  let online = [...matched, ...picked.slice(0, onlineFillerCount)];
+  const offline = picked.slice(onlineFillerCount);
+  if (channelName === profile.major) online = [profile.name, ...online];
+  return { online: [...new Set(online)], offline: [...new Set(offline)] };
+}
+
 // ---------- Branches / majors, grouped by stream ----------
 const BRANCH_GROUPS = {
   "Engineering": [
@@ -537,13 +582,16 @@ function SecondaryButton({ children, onClick, icon: Icon, active }) {
   );
 }
 
-function Modal({ title, onClose, children, wide }) {
+function Modal({ title, onClose, children, wide, dark }) {
+  const bg = dark ? DC.bgMain : C.paperCard;
+  const border = dark ? DC.divider : C.paperLine;
+  const textColor = dark ? DC.textPrimary : C.ink;
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ backgroundColor: "rgba(27,27,58,0.55)" }}>
-      <div className={`rounded-t-2xl sm:rounded-2xl w-full ${wide ? "sm:max-w-2xl" : "sm:max-w-md"} max-h-[90vh] overflow-y-auto`} style={{ backgroundColor: C.paperCard }}>
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b sticky top-0" style={{ borderColor: C.paperLine, backgroundColor: C.paperCard }}>
-          <h3 className="font-extrabold text-base sm:text-lg" style={{ color: C.ink }}>{title}</h3>
-          <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70 shrink-0" style={{ color: C.inkSoft }}>
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" style={{ backgroundColor: "rgba(0,0,0,0.6)" }}>
+      <div className={`rounded-t-2xl sm:rounded-2xl w-full ${wide ? "sm:max-w-2xl" : "sm:max-w-md"} max-h-[90vh] overflow-y-auto`} style={{ backgroundColor: bg }}>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b sticky top-0" style={{ borderColor: border, backgroundColor: bg }}>
+          <h3 className="font-extrabold text-base sm:text-lg" style={{ color: textColor }}>{title}</h3>
+          <button onClick={onClose} className="p-1 rounded-lg hover:opacity-70 shrink-0" style={{ color: dark ? DC.textMuted : C.inkSoft }}>
             <X size={20} />
           </button>
         </div>
@@ -1276,7 +1324,7 @@ function OpportunitiesView({ profile, opportunities, setOpportunities, applicati
   );
 }
 
-// ---------- Chat ----------
+// ---------- Chat (Discord-style) ----------
 function ChatView({ profile, channels, setChannels }) {
   const [active, setActive] = useState(profile.major);
   const [tab, setTab] = useState("chat");
@@ -1286,8 +1334,10 @@ function ChatView({ profile, channels, setChannels }) {
   const [reply, setReply] = useState("");
   const [channelSearch, setChannelSearch] = useState("");
   const [mobileShowList, setMobileShowList] = useState(true);
+  const [showMembers, setShowMembers] = useState(false);
 
   const channel = channels[active];
+  const members = getChannelMembers(active, profile);
 
   const sendMsg = () => {
     if (!msg.trim()) return;
@@ -1329,111 +1379,167 @@ function ChatView({ profile, channels, setChannels }) {
   };
 
   const activeThread = openThread ? channel.threads.find((t) => t.id === openThread) : null;
+  const darkInput = { width: "100%", padding: "10px 14px", borderRadius: "8px", border: "none", backgroundColor: DC.bgInput, color: DC.textPrimary, outline: "none", fontSize: "14px" };
 
   return (
-    <div className="max-w-6xl h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col md:flex-row gap-0 md:gap-5">
-      {/* channel list */}
-      <div className={`${mobileShowList ? "flex" : "hidden"} md:flex w-full md:w-64 shrink-0 flex-col`}>
-        <Eyebrow>Major channels ({MAJORS.length})</Eyebrow>
-        <div className="relative mt-2 mb-2">
-          <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
-          <input
-            style={{ ...inputStyle, paddingLeft: 28, padding: "7px 10px 7px 28px", fontSize: 13 }}
-            placeholder="Search channels"
-            value={channelSearch}
-            onChange={(e) => setChannelSearch(e.target.value)}
-          />
+    <div className="max-w-6xl h-[calc(100vh-6rem)] md:h-[calc(100vh-4rem)] flex flex-col md:flex-row rounded-2xl overflow-hidden" style={{ border: `1px solid ${DC.divider}` }}>
+      {/* channel sidebar */}
+      <div className={`${mobileShowList ? "flex" : "hidden"} md:flex w-full md:w-64 shrink-0 flex-col`} style={{ backgroundColor: DC.bgSidebar }}>
+        <div className="px-4 py-3.5 border-b flex items-center gap-2" style={{ borderColor: DC.divider }}>
+          <Hash size={16} style={{ color: DC.textMuted }} />
+          <span className="font-extrabold text-sm truncate" style={{ color: DC.textPrimary }}>CampusConnect Chat</span>
         </div>
-        <div className="space-y-3 overflow-y-auto pr-1" style={{ maxHeight: "calc(100vh - 14rem)" }}>
+        <div className="px-3 pt-3">
+          <div className="relative mb-2">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: DC.textMuted }} />
+            <input
+              style={{ ...darkInput, paddingLeft: 28, padding: "6px 10px 6px 28px", fontSize: 13 }}
+              placeholder="Search channels"
+              value={channelSearch}
+              onChange={(e) => setChannelSearch(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-3">
           {Object.entries(BRANCH_GROUPS).map(([group, list]) => {
             const visible = list.filter((m) => m.toLowerCase().includes(channelSearch.toLowerCase()));
             if (visible.length === 0) return null;
             return (
               <div key={group}>
-                <div className="text-[10px] font-bold uppercase tracking-wide mb-1 px-1" style={{ color: C.textMuted }}>{group}</div>
+                <div className="text-[10px] font-bold uppercase tracking-wide mb-1 px-2" style={{ color: DC.textMuted }}>{group}</div>
                 <div className="space-y-0.5">
-                  {visible.map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => { setActive(m); setOpenThread(null); setMobileShowList(false); }}
-                      className="w-full text-left px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-2"
-                      style={{ backgroundColor: active === m ? C.tealSoft : "transparent", color: active === m ? C.teal : C.inkSoft }}
-                    >
-                      <Hash size={13} className="shrink-0" /> <span className="truncate">{m}</span>
-                      {m === profile.major && <span className="ml-auto text-[9px] font-bold shrink-0" style={{ color: C.marigoldDark }}>YOURS</span>}
-                    </button>
-                  ))}
+                  {visible.map((m) => {
+                    const isActive = active === m;
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => { setActive(m); setOpenThread(null); setMobileShowList(false); }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5"
+                        style={{ backgroundColor: isActive ? DC.bgActive : "transparent", color: isActive ? DC.textPrimary : DC.textMuted }}
+                      >
+                        <Hash size={15} className="shrink-0" style={{ color: isActive ? DC.textPrimary : DC.textFaint }} />
+                        <span className="truncate">{m}</span>
+                        {m === profile.major && <span className="ml-auto w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: C.marigold }} />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
         </div>
+        {/* user mini-bar */}
+        <div className="flex items-center gap-2 px-3 py-2.5 border-t" style={{ borderColor: DC.divider, backgroundColor: "#232428" }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: colorForName(profile.name), color: "#1e1f22" }}>
+            {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-xs font-bold truncate" style={{ color: DC.textPrimary }}>{profile.name}</div>
+            <div className="text-[10px] flex items-center gap-1" style={{ color: DC.online }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: DC.online }} /> Online
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* main pane */}
-      <div className={`${mobileShowList ? "hidden" : "flex"} md:flex flex-1 flex-col rounded-2xl overflow-hidden md:border`} style={{ backgroundColor: C.paperCard, borderColor: C.paperLine }}>
-        <div className="px-3 sm:px-5 py-3 sm:py-4 border-b flex items-center justify-between gap-2" style={{ borderColor: C.paperLine }}>
+      <div className={`${mobileShowList ? "hidden" : "flex"} md:flex flex-1 flex-col`} style={{ backgroundColor: DC.bgMain }}>
+        <div className="px-3 sm:px-4 py-3 border-b flex items-center justify-between gap-2" style={{ borderColor: DC.divider }}>
           <div className="flex items-center gap-2 min-w-0">
-            <button onClick={() => setMobileShowList(true)} className="md:hidden p-1 -ml-1 shrink-0" style={{ color: C.inkSoft }}>
+            <button onClick={() => setMobileShowList(true)} className="md:hidden p-1 -ml-1 shrink-0" style={{ color: DC.textMuted }}>
               <ArrowLeft size={18} />
             </button>
-            <h2 className="font-extrabold truncate text-sm sm:text-base" style={{ color: C.ink }}># {active}</h2>
+            <Hash size={16} style={{ color: DC.textMuted }} className="shrink-0" />
+            <h2 className="font-bold truncate text-sm sm:text-base" style={{ color: DC.textPrimary }}>{active}</h2>
           </div>
-          <div className="flex gap-1.5 sm:gap-2 shrink-0">
-            <SecondaryButton active={tab === "chat"} onClick={() => setTab("chat")} icon={MessageCircle}><span className="hidden sm:inline">Live chat</span></SecondaryButton>
-            <SecondaryButton active={tab === "qa"} onClick={() => { setTab("qa"); setOpenThread(null); }} icon={Sparkles}><span className="hidden sm:inline">Q&A threads</span></SecondaryButton>
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              onClick={() => setTab("chat")}
+              className="px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5"
+              style={{ backgroundColor: tab === "chat" ? DC.bgActive : "transparent", color: tab === "chat" ? DC.textPrimary : DC.textMuted }}
+            >
+              <MessageCircle size={13} /> <span className="hidden sm:inline">Live chat</span>
+            </button>
+            <button
+              onClick={() => { setTab("qa"); setOpenThread(null); }}
+              className="px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1.5"
+              style={{ backgroundColor: tab === "qa" ? DC.bgActive : "transparent", color: tab === "qa" ? DC.textPrimary : DC.textMuted }}
+            >
+              <Sparkles size={13} /> <span className="hidden sm:inline">Q&A threads</span>
+            </button>
+            <button
+              onClick={() => setShowMembers((s) => !s)}
+              className="lg:hidden p-1.5 rounded-md"
+              style={{ backgroundColor: showMembers ? DC.bgActive : "transparent", color: DC.textMuted }}
+              aria-label="Members"
+            >
+              <Users size={16} />
+            </button>
           </div>
         </div>
 
         {tab === "chat" && (
           <>
-            <div className="flex-1 overflow-y-auto p-3 sm:p-5 space-y-3">
-              {channel.messages.length === 0 && <p className="text-sm" style={{ color: C.textMuted }}>No messages yet — say hi to your {active} batchmates.</p>}
+            <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3.5">
+              {channel.messages.length === 0 && <p className="text-sm" style={{ color: DC.textMuted }}>No messages yet — say hi to your {active} batchmates.</p>}
               {channel.messages.map((m) => (
                 <div key={m.id} className="flex gap-3">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 font-bold text-xs" style={{ backgroundColor: C.marigold, color: C.ink }}>
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 font-bold text-xs" style={{ backgroundColor: colorForName(m.user), color: "#1e1f22" }}>
                     {m.user.split(" ").map((p) => p[0]).join("").slice(0, 2)}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-bold text-sm" style={{ color: C.ink }}>{m.user}</span>
-                      <span className="text-xs" style={{ color: C.textMuted }}>{m.time}</span>
+                      <span className="font-bold text-sm" style={{ color: colorForName(m.user) }}>{m.user}</span>
+                      <span className="text-[11px]" style={{ color: DC.textFaint }}>{m.time}</span>
                     </div>
-                    <p className="text-sm break-words" style={{ color: C.inkSoft }}>{m.text}</p>
+                    <p className="text-sm break-words" style={{ color: "#dbdee1" }}>{m.text}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="p-3 sm:p-4 border-t flex gap-2" style={{ borderColor: C.paperLine }}>
-              <input
-                style={{ ...inputStyle, flex: 1 }}
-                placeholder={`Message #${active}`}
-                value={msg}
-                onChange={(e) => setMsg(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && sendMsg()}
-              />
-              <PrimaryButton icon={Send} onClick={sendMsg}><span className="hidden sm:inline">Send</span></PrimaryButton>
+            <div className="p-3 sm:p-4">
+              <div className="flex items-center gap-2 rounded-lg px-3" style={{ backgroundColor: DC.bgInput }}>
+                <input
+                  style={{ ...darkInput, backgroundColor: "transparent", padding: "10px 0" }}
+                  placeholder={`Message #${active}`}
+                  value={msg}
+                  onChange={(e) => setMsg(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && sendMsg()}
+                />
+                <button onClick={sendMsg} className="p-1.5 rounded-md shrink-0" style={{ color: msg.trim() ? DC.brand : DC.textFaint }}>
+                  <Send size={17} />
+                </button>
+              </div>
             </div>
           </>
         )}
 
         {tab === "qa" && !activeThread && (
-          <div className="flex-1 overflow-y-auto p-3 sm:p-5">
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4">
             <div className="flex justify-end mb-4">
-              <PrimaryButton icon={Plus} onClick={() => setShowNewThread(true)}>Ask a question</PrimaryButton>
+              <button onClick={() => setShowNewThread(true)} className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg font-semibold text-sm" style={{ backgroundColor: DC.brand, color: "#fff" }}>
+                <Plus size={15} /> Ask a question
+              </button>
             </div>
-            <div className="space-y-3">
-              {channel.threads.length === 0 && <p className="text-sm" style={{ color: C.textMuted }}>No questions yet in this channel — be the first to ask.</p>}
+            <div className="space-y-2.5">
+              {channel.threads.length === 0 && <p className="text-sm" style={{ color: DC.textMuted }}>No questions yet in this channel — be the first to ask.</p>}
               {channel.threads.map((t) => {
                 const best = t.replies.find((r) => r.isBest);
                 return (
-                  <Card key={t.id} className="cursor-pointer" style={{}}>
-                    <div onClick={() => setOpenThread(t.id)}>
-                      <h4 className="font-bold text-sm mb-1" style={{ color: C.ink }}>{t.title}</h4>
-                      <p className="text-xs mb-2" style={{ color: C.textMuted }}>Asked by {t.author} · {t.replies.length} replies</p>
-                      {best && <Badge bg={C.tealSoft} fg={C.teal}><span className="inline-flex items-center gap-1"><CheckCircle2 size={11} /> Answered</span></Badge>}
-                    </div>
-                  </Card>
+                  <button
+                    key={t.id}
+                    onClick={() => setOpenThread(t.id)}
+                    className="w-full text-left rounded-xl p-3.5"
+                    style={{ backgroundColor: DC.bgSidebar, border: `1px solid ${DC.divider}` }}
+                  >
+                    <h4 className="font-bold text-sm mb-1" style={{ color: DC.textPrimary }}>{t.title}</h4>
+                    <p className="text-xs mb-2" style={{ color: DC.textMuted }}>Asked by {t.author} · {t.replies.length} replies</p>
+                    {best && (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(35,165,90,0.15)", color: DC.online }}>
+                        <CheckCircle2 size={11} /> Answered
+                      </span>
+                    )}
+                  </button>
                 );
               })}
             </div>
@@ -1441,38 +1547,87 @@ function ChatView({ profile, channels, setChannels }) {
         )}
 
         {tab === "qa" && activeThread && (
-          <div className="flex-1 overflow-y-auto p-3 sm:p-5">
-            <button onClick={() => setOpenThread(null)} className="flex items-center gap-1 text-sm font-semibold mb-4" style={{ color: C.teal }}>
+          <div className="flex-1 overflow-y-auto p-3 sm:p-4">
+            <button onClick={() => setOpenThread(null)} className="flex items-center gap-1 text-sm font-semibold mb-4" style={{ color: DC.textMuted }}>
               <ArrowLeft size={14} /> Back to threads
             </button>
-            <h3 className="font-extrabold text-lg mb-1" style={{ color: C.ink }}>{activeThread.title}</h3>
-            <p className="text-xs mb-3" style={{ color: C.textMuted }}>Asked by {activeThread.author}</p>
-            <p className="text-sm mb-5" style={{ color: C.inkSoft }}>{activeThread.body}</p>
+            <h3 className="font-extrabold text-lg mb-1" style={{ color: DC.textPrimary }}>{activeThread.title}</h3>
+            <p className="text-xs mb-3" style={{ color: DC.textMuted }}>Asked by {activeThread.author}</p>
+            <p className="text-sm mb-5" style={{ color: "#dbdee1" }}>{activeThread.body}</p>
 
-            <div className="space-y-3 mb-5">
+            <div className="space-y-2.5 mb-5">
               {activeThread.replies.map((r) => (
-                <Card key={r.id} style={{ backgroundColor: r.isBest ? C.tealSoft : C.paper, borderColor: r.isBest ? C.teal : C.paperLine }}>
+                <div
+                  key={r.id}
+                  className="rounded-xl p-3.5"
+                  style={{ backgroundColor: r.isBest ? "rgba(35,165,90,0.1)" : DC.bgSidebar, border: `1px solid ${r.isBest ? DC.online : DC.divider}` }}
+                >
                   <div className="flex flex-col sm:flex-row items-start justify-between gap-2 sm:gap-3">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="font-bold text-sm" style={{ color: C.ink }}>{r.user}</span>
-                        {r.isBest && <Badge bg={C.teal} fg={C.paper}><span className="inline-flex items-center gap-1"><Star size={10} /> Best answer</span></Badge>}
+                        <span className="font-bold text-sm" style={{ color: colorForName(r.user) }}>{r.user}</span>
+                        {r.isBest && (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(35,165,90,0.2)", color: DC.online }}>
+                            <Star size={10} /> Best answer
+                          </span>
+                        )}
                       </div>
-                      <p className="text-sm" style={{ color: C.inkSoft }}>{r.text}</p>
+                      <p className="text-sm" style={{ color: "#dbdee1" }}>{r.text}</p>
                     </div>
                     {activeThread.author === profile.name && !r.isBest && (
-                      <button onClick={() => markBest(activeThread.id, r.id)} className="text-xs font-semibold shrink-0" style={{ color: C.teal }}>Mark best</button>
+                      <button onClick={() => markBest(activeThread.id, r.id)} className="text-xs font-semibold shrink-0" style={{ color: DC.brand }}>Mark best</button>
                     )}
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
 
-            <div className="flex gap-2">
-              <input style={{ ...inputStyle, flex: 1 }} placeholder="Write a reply..." value={reply} onChange={(e) => setReply(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addReply(activeThread.id)} />
-              <PrimaryButton icon={Send} onClick={() => addReply(activeThread.id)}>Reply</PrimaryButton>
+            <div className="flex items-center gap-2 rounded-lg px-3" style={{ backgroundColor: DC.bgInput }}>
+              <input
+                style={{ ...darkInput, backgroundColor: "transparent", padding: "10px 0" }}
+                placeholder="Write a reply..."
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addReply(activeThread.id)}
+              />
+              <button onClick={() => addReply(activeThread.id)} className="p-1.5 rounded-md shrink-0" style={{ color: reply.trim() ? DC.brand : DC.textFaint }}>
+                <Send size={17} />
+              </button>
             </div>
           </div>
+        )}
+      </div>
+
+      {/* member list */}
+      <div className={`${showMembers ? "flex" : "hidden"} lg:flex w-full lg:w-52 shrink-0 flex-col p-3 overflow-y-auto`} style={{ backgroundColor: DC.bgMember, borderLeft: `1px solid ${DC.divider}` }}>
+        <div className="text-[11px] font-bold uppercase tracking-wide mb-2 px-1" style={{ color: DC.textMuted }}>Online — {members.online.length}</div>
+        <div className="space-y-1 mb-4">
+          {members.online.map((name) => (
+            <div key={name} className="flex items-center gap-2 px-1 py-1 rounded-md">
+              <div className="relative shrink-0">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px]" style={{ backgroundColor: colorForName(name), color: "#1e1f22" }}>
+                  {name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                </div>
+                <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: DC.online, borderColor: DC.bgMember }} />
+              </div>
+              <span className="text-xs font-medium truncate" style={{ color: DC.textMuted }}>{name}{name === profile.name ? " (you)" : ""}</span>
+            </div>
+          ))}
+        </div>
+        {members.offline.length > 0 && (
+          <>
+            <div className="text-[11px] font-bold uppercase tracking-wide mb-2 px-1" style={{ color: DC.textMuted }}>Offline — {members.offline.length}</div>
+            <div className="space-y-1">
+              {members.offline.map((name) => (
+                <div key={name} className="flex items-center gap-2 px-1 py-1 rounded-md opacity-50">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px] shrink-0" style={{ backgroundColor: colorForName(name), color: "#1e1f22" }}>
+                    {name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                  </div>
+                  <span className="text-xs font-medium truncate" style={{ color: DC.textMuted }}>{name}</span>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
@@ -1486,15 +1641,24 @@ function ChatView({ profile, channels, setChannels }) {
 function NewThreadModal({ onClose, onSubmit }) {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const darkInput = { width: "100%", padding: "10px 12px", borderRadius: "8px", border: `1px solid ${DC.divider}`, backgroundColor: DC.bgInput, color: DC.textPrimary, outline: "none", fontSize: "14px" };
   return (
-    <Modal title="Ask a question" onClose={onClose}>
-      <Field label="Question title">
-        <input style={inputStyle} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Best resources for thermodynamics CIE?" />
-      </Field>
-      <Field label="Details">
-        <textarea style={{ ...inputStyle, minHeight: 90 }} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Add context so people can actually help." />
-      </Field>
-      <PrimaryButton style={{ width: "100%", justifyContent: "center" }} onClick={() => title.trim() && onSubmit(title, body)}>Post question</PrimaryButton>
+    <Modal title="Ask a question" onClose={onClose} dark>
+      <label className="block mb-4">
+        <span className="block text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: DC.textMuted }}>Question title</span>
+        <input style={darkInput} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Best resources for thermodynamics CIE?" />
+      </label>
+      <label className="block mb-4">
+        <span className="block text-xs font-bold uppercase tracking-wide mb-1.5" style={{ color: DC.textMuted }}>Details</span>
+        <textarea style={{ ...darkInput, minHeight: 90 }} value={body} onChange={(e) => setBody(e.target.value)} placeholder="Add context so people can actually help." />
+      </label>
+      <button
+        onClick={() => title.trim() && onSubmit(title, body)}
+        className="w-full py-2.5 rounded-lg font-semibold text-sm"
+        style={{ backgroundColor: DC.brand, color: "#fff" }}
+      >
+        Post question
+      </button>
     </Modal>
   );
 }
