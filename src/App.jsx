@@ -224,6 +224,90 @@ const SEED_VERIFIED_COMPANIES = [
 ];
 const SEED_VERIFIED_PROFESSORS = ["Prof. Anand Rege", "Prof. Kavita Iyer"];
 
+// Google verification: instead of typing an exact name, an account can verify
+// by "signing in with Google" and having their work/college email domain checked
+// against known domains. This is mocked (no real OAuth) but the domain-check
+// logic mirrors how a real Google Workspace verification would work.
+const KNOWN_COMPANY_DOMAINS = {
+  "zepto.com": "Zepto",
+  "kotak.com": "Kotak Mahindra Bank",
+  "tcs.com": "Tata Consultancy Services (TCS)",
+  "ril.com": "Reliance Industries",
+  "hdfcbank.com": "HDFC Bank",
+  "icicibank.com": "ICICI Bank",
+  "larsentoubro.com": "Larsen & Toubro (L&T)",
+  "godrej.com": "Godrej",
+  "mahindra.com": "Mahindra & Mahindra",
+  "wipro.com": "Wipro",
+};
+const COLLEGE_EMAIL_SUFFIXES = [".ac.in", ".edu.in", ".edu"];
+const MOCK_GOOGLE_ACCOUNTS = [
+  { name: "Priya Sharma", email: "priya.sharma@gmail.com" },
+  { name: "Aakash Mehta", email: "recruiter@zepto.com" },
+  { name: "Anand Rege", email: "anand.rege@vjti.ac.in" },
+  { name: "Sneha Iyer", email: "hr@kotak.com" },
+  { name: "Rahul Jain", email: "founder@unknownstartup.io" },
+];
+function emailDomain(email) {
+  return email.split("@")[1] || "";
+}
+function isCollegeDomain(domain) {
+  return COLLEGE_EMAIL_SUFFIXES.some((suf) => domain.endsWith(suf));
+}
+
+function GoogleIcon({ size = 18 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.9 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.3-.4-3.5z" />
+      <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6 29.6 4 24 4c-7.4 0-13.8 4.2-17 10.3z" />
+      <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.9 39.6 16.4 44 24 44z" />
+      <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.1 5.7l6.3 5.3C40.9 36.6 44 30.9 44 24c0-1.3-.1-2.3-.4-3.5z" />
+    </svg>
+  );
+}
+
+function GoogleButton({ children, onClick, style = {} }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl font-semibold text-sm border transition-colors"
+      style={{ borderColor: "#dadce0", backgroundColor: "#fff", color: "#3c4043", ...style }}
+    >
+      <GoogleIcon size={17} />
+      {children}
+    </button>
+  );
+}
+
+function GoogleAccountPicker({ onClose, onSelect }) {
+  return (
+    <Modal title="Sign in with Google" onClose={onClose}>
+      <p className="text-sm mb-4" style={{ color: C.textMuted }}>Choose an account to continue.</p>
+      <div className="space-y-1">
+        {MOCK_GOOGLE_ACCOUNTS.map((acc) => (
+          <button
+            key={acc.email}
+            onClick={() => onSelect(acc)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:opacity-80"
+            style={{ border: `1px solid ${C.paperLine}` }}
+          >
+            <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: colorForName(acc.name), color: "#1e1f22" }}>
+              {acc.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold truncate" style={{ color: C.ink }}>{acc.name}</div>
+              <div className="text-xs truncate" style={{ color: C.textMuted }}>{acc.email}</div>
+            </div>
+          </button>
+        ))}
+      </div>
+      <p className="text-[11px] mt-4" style={{ color: C.textMuted }}>
+        This is a simulated Google sign-in for the prototype — no real Google account data is used.
+      </p>
+    </Modal>
+  );
+}
+
 const initialOpportunities = [
   {
     id: "o1",
@@ -726,6 +810,26 @@ function Onboarding({ onComplete }) {
   const [companyName, setCompanyName] = useState("");
   const [industry, setIndustry] = useState(INDUSTRIES[0]);
   const [error, setError] = useState("");
+  const [googleAccount, setGoogleAccount] = useState(null);
+  const [showGooglePicker, setShowGooglePicker] = useState(false);
+
+  const handleGoogleSelect = (acc) => {
+    setGoogleAccount(acc);
+    setShowGooglePicker(false);
+    if (!name.trim()) setName(acc.name);
+    const domain = emailDomain(acc.email);
+    if (role === "Company" && KNOWN_COMPANY_DOMAINS[domain] && !companyName.trim()) {
+      setCompanyName(KNOWN_COMPANY_DOMAINS[domain]);
+    }
+  };
+
+  const googleGrantsVerification = () => {
+    if (!googleAccount) return false;
+    const domain = emailDomain(googleAccount.email);
+    if (role === "Company") return !!KNOWN_COMPANY_DOMAINS[domain];
+    if (role === "Professor") return isCollegeDomain(domain);
+    return false;
+  };
 
   const submit = () => {
     if (role === "Company") {
@@ -733,16 +837,25 @@ function Onboarding({ onComplete }) {
         setError("Add your name and your company's registered name — we check this against our verified list before you can post internships.");
         return;
       }
-      const isVerified = SEED_VERIFIED_COMPANIES.some((c) => c.toLowerCase() === companyName.trim().toLowerCase());
-      onComplete({ name, role, companyName: companyName.trim(), industry, college: "", major: "", year: "", isVerified, cvUploaded: false, cvName: "", bio: "", skills: [] });
+      const nameMatch = SEED_VERIFIED_COMPANIES.some((c) => c.toLowerCase() === companyName.trim().toLowerCase());
+      const isVerified = nameMatch || googleGrantsVerification();
+      onComplete({
+        name, role, companyName: companyName.trim(), industry, college: "", major: "", year: "",
+        isVerified, verifiedVia: isVerified ? (googleGrantsVerification() ? "google" : "registry") : null,
+        googleEmail: googleAccount?.email || "", cvUploaded: false, cvName: "", bio: "", skills: [],
+      });
       return;
     }
     if (!name.trim() || !college || !major) {
       setError("Fill in your name, college, and major to continue — we use this to route you to the right channels and clubs.");
       return;
     }
-    const isVerified = role === "Professor" ? SEED_VERIFIED_PROFESSORS.some((p) => p.toLowerCase() === name.trim().toLowerCase()) : false;
-    onComplete({ name, college, major, year, role, isVerified, companyName: "", industry: "", cvUploaded: false, cvName: "", bio: "", skills: [] });
+    const nameMatch = role === "Professor" && SEED_VERIFIED_PROFESSORS.some((p) => p.toLowerCase() === name.trim().toLowerCase());
+    const isVerified = role === "Professor" ? (nameMatch || googleGrantsVerification()) : false;
+    onComplete({
+      name, college, major, year, role, isVerified, verifiedVia: isVerified ? (googleGrantsVerification() ? "google" : "registry") : null,
+      googleEmail: googleAccount?.email || "", companyName: "", industry: "", cvUploaded: false, cvName: "", bio: "", skills: [],
+    });
   };
 
   return (
@@ -781,6 +894,30 @@ function Onboarding({ onComplete }) {
               ))}
             </div>
           </Field>
+
+          {(role === "Company" || role === "Professor") && (
+            <div className="mb-4">
+              {googleAccount ? (
+                <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl" style={{ backgroundColor: googleGrantsVerification() ? C.tealSoft : C.paper, border: `1px solid ${googleGrantsVerification() ? C.teal : C.paperLine}` }}>
+                  <GoogleIcon size={16} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold truncate" style={{ color: C.ink }}>{googleAccount.email}</div>
+                    <div className="text-[11px]" style={{ color: googleGrantsVerification() ? C.teal : C.textMuted }}>
+                      {googleGrantsVerification() ? "Domain verified — instant approval" : "Domain not on our registry yet"}
+                    </div>
+                  </div>
+                  <button onClick={() => setGoogleAccount(null)} className="text-xs font-semibold shrink-0" style={{ color: C.textMuted }}>Change</button>
+                </div>
+              ) : (
+                <GoogleButton onClick={() => setShowGooglePicker(true)}>
+                  Verify with Google {role === "Company" ? "Workspace" : "(college email)"}
+                </GoogleButton>
+              )}
+              <p className="text-[11px] mt-1.5" style={{ color: C.textMuted }}>
+                {role === "Company" ? "Faster than manual review — matches your work email's domain against our registry." : "Faster than manual review — checks your college email domain."}
+              </p>
+            </div>
+          )}
 
           <Field label={role === "Company" ? "Your name (recruiter / HR contact)" : "Full name"}>
             <input style={inputStyle} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Ananya Joshi" />
@@ -849,6 +986,7 @@ function Onboarding({ onComplete }) {
           )}
         </div>
       </div>
+      {showGooglePicker && <GoogleAccountPicker onClose={() => setShowGooglePicker(false)} onSelect={handleGoogleSelect} />}
     </div>
   );
 }
@@ -1122,9 +1260,20 @@ function CvGateModal({ onUpload, onClose }) {
   );
 }
 
-function VerifyGateModal({ profile, onClose }) {
+function VerifyGateModal({ profile, onClose, onVerifiedViaGoogle }) {
   const [requested, setRequested] = useState(false);
+  const [showGooglePicker, setShowGooglePicker] = useState(false);
+  const [googleResult, setGoogleResult] = useState(null); // { matched: bool, account }
   const isCompany = profile.role === "Company";
+
+  const handleGoogleSelect = (acc) => {
+    setShowGooglePicker(false);
+    const domain = emailDomain(acc.email);
+    const matched = isCompany ? !!KNOWN_COMPANY_DOMAINS[domain] : isCollegeDomain(domain);
+    setGoogleResult({ matched, account: acc });
+    if (matched) onVerifiedViaGoogle(acc);
+  };
+
   return (
     <Modal title={isCompany ? "Company verification required" : "Professor verification required"} onClose={onClose}>
       <div className="flex items-center gap-2 mb-3">
@@ -1136,20 +1285,40 @@ function VerifyGateModal({ profile, onClose }) {
           ? `Only verified companies can post internships — this keeps the board free of spam and unlisted recruiters. "${profile.companyName}" hasn't been confirmed yet.`
           : `Only verified professors can publish research listings — this confirms you're affiliated with a real Mumbai university department. "${profile.name}" hasn't been confirmed yet.`}
       </p>
-      <p className="text-sm mb-5" style={{ color: C.textMuted }}>
-        {isCompany
-          ? "Verification usually checks your registered company name and official work email domain."
-          : "Verification usually checks your college email domain and faculty listing."}
-      </p>
-      {requested ? (
-        <div className="text-sm px-3 py-2.5 rounded-lg" style={{ backgroundColor: C.tealSoft, color: C.teal }}>
-          Request sent — reviews are typically completed within 2 business days. We'll email you once you're verified.
+
+      {googleResult?.matched ? (
+        <div className="text-sm px-3 py-2.5 rounded-lg mb-4 flex items-center gap-2" style={{ backgroundColor: C.tealSoft, color: C.teal }}>
+          <ShieldCheck size={15} /> Verified via Google — you can post now.
         </div>
       ) : (
-        <PrimaryButton style={{ width: "100%", justifyContent: "center" }} onClick={() => setRequested(true)}>
-          Request verification
-        </PrimaryButton>
+        <>
+          <GoogleButton onClick={() => setShowGooglePicker(true)} style={{ marginBottom: 8 }}>
+            Verify with Google {isCompany ? "Workspace" : "(college email)"}
+          </GoogleButton>
+          {googleResult && !googleResult.matched && (
+            <p className="text-xs mb-3" style={{ color: C.coral }}>
+              "{googleResult.account.email}" isn't on our verified domain list yet — try "Request verification" below instead.
+            </p>
+          )}
+          <p className="text-[11px] mb-4" style={{ color: C.textMuted }}>
+            {isCompany ? "Checks your work email's domain against our registry." : "Checks your college email domain."}
+          </p>
+
+          <div className="text-center text-xs mb-4" style={{ color: C.textMuted }}>or</div>
+
+          {requested ? (
+            <div className="text-sm px-3 py-2.5 rounded-lg" style={{ backgroundColor: C.paper, color: C.inkSoft }}>
+              Request sent — reviews are typically completed within 2 business days. We'll email you once you're verified.
+            </div>
+          ) : (
+            <SecondaryButton onClick={() => setRequested(true)}>
+              Request manual verification
+            </SecondaryButton>
+          )}
+        </>
       )}
+
+      {showGooglePicker && <GoogleAccountPicker onClose={() => setShowGooglePicker(false)} onSelect={handleGoogleSelect} />}
     </Modal>
   );
 }
@@ -1219,7 +1388,7 @@ function PostOpportunityModal({ onClose, onSubmit, profile }) {
   );
 }
 
-function OpportunitiesView({ profile, opportunities, setOpportunities, applications, setApplications, onNeedCv }) {
+function OpportunitiesView({ profile, opportunities, setOpportunities, applications, setApplications, onNeedCv, onVerifiedViaGoogle }) {
   const [filterMajor, setFilterMajor] = useState("All");
   const [filterType, setFilterType] = useState("All");
   const [showPost, setShowPost] = useState(false);
@@ -1319,7 +1488,13 @@ function OpportunitiesView({ profile, opportunities, setOpportunities, applicati
           onSubmit={(o) => { setOpportunities((prev) => [o, ...prev]); setShowPost(false); }}
         />
       )}
-      {showGate && <VerifyGateModal profile={profile} onClose={() => setShowGate(false)} />}
+      {showGate && (
+        <VerifyGateModal
+          profile={profile}
+          onClose={() => setShowGate(false)}
+          onVerifiedViaGoogle={(acc) => { onVerifiedViaGoogle(acc); setTimeout(() => setShowGate(false), 1200); }}
+        />
+      )}
     </div>
   );
 }
@@ -1963,7 +2138,7 @@ function ProfileView({ profile, applications, onNeedCv }) {
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Company</span>{profile.companyName}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Industry</span>{profile.industry}</div>
             <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Role</span>{profile.role}</div>
-            <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Status</span>{profile.isVerified ? "Verified — can post internships" : "Pending review"}</div>
+            <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Status</span>{profile.isVerified ? `Verified${profile.verifiedVia === "google" ? " via Google" : ""} — can post internships` : "Pending review"}</div>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -2006,10 +2181,25 @@ function ProfileView({ profile, applications, onNeedCv }) {
 }
 
 // ---------- Verified-poster dashboard (Professor & Company) ----------
-function PosterDashboard({ profile, opportunities }) {
+function PosterDashboard({ profile, opportunities, onVerifiedViaGoogle }) {
   const isCompany = profile.role === "Company";
   const identity = isCompany ? profile.companyName : profile.name;
   const mine = opportunities.filter((o) => o.postedBy === identity || o.org === identity);
+  const [showGooglePicker, setShowGooglePicker] = useState(false);
+  const [googleMiss, setGoogleMiss] = useState(null);
+
+  const handleGoogleSelect = (acc) => {
+    setShowGooglePicker(false);
+    const domain = emailDomain(acc.email);
+    const matched = isCompany ? !!KNOWN_COMPANY_DOMAINS[domain] : isCollegeDomain(domain);
+    if (matched) {
+      setGoogleMiss(null);
+      onVerifiedViaGoogle(acc);
+    } else {
+      setGoogleMiss(acc.email);
+    }
+  };
+
   return (
     <div className="max-w-4xl">
       <Eyebrow color={C.marigoldDark}>{isCompany ? "Company tools" : "Professor tools"}</Eyebrow>
@@ -2022,14 +2212,20 @@ function PosterDashboard({ profile, opportunities }) {
       {profile.isVerified ? (
         <Card className="mb-4" style={{ backgroundColor: C.tealSoft, borderColor: "transparent" }}>
           <p className="text-sm font-semibold flex items-center gap-2" style={{ color: C.teal }}>
-            <ShieldCheck size={16} /> Verified — your postings carry a verified badge visible to students.
+            <ShieldCheck size={16} /> Verified{profile.verifiedVia === "google" ? " via Google" : ""} — your postings carry a verified badge visible to students.
           </p>
         </Card>
       ) : (
         <Card className="mb-4" style={{ backgroundColor: C.coralSoft, borderColor: "transparent" }}>
-          <p className="text-sm font-semibold" style={{ color: C.coral }}>
+          <p className="text-sm font-semibold mb-3" style={{ color: C.coral }}>
             Verification pending — {isCompany ? "once your company is confirmed against our registry" : "once your college email is confirmed"}, you'll be able to post here.
           </p>
+          <GoogleButton onClick={() => setShowGooglePicker(true)}>
+            Verify with Google {isCompany ? "Workspace" : "(college email)"}
+          </GoogleButton>
+          {googleMiss && (
+            <p className="text-xs mt-2" style={{ color: C.coral }}>"{googleMiss}" isn't on our verified domain list yet.</p>
+          )}
         </Card>
       )}
       <h3 className="font-extrabold mb-3" style={{ color: C.ink }}>Your postings</h3>
@@ -2045,6 +2241,7 @@ function PosterDashboard({ profile, opportunities }) {
           </Card>
         ))}
       </div>
+      {showGooglePicker && <GoogleAccountPicker onClose={() => setShowGooglePicker(false)} onSelect={handleGoogleSelect} />}
     </div>
   );
 }
@@ -2099,6 +2296,11 @@ export default function App() {
     }
   };
 
+  const handleGoogleVerification = (acc) => {
+    setProfile((p) => ({ ...p, isVerified: true, verifiedVia: "google", googleEmail: acc.email }));
+    pushNotification({ text: `Verified via Google (${acc.email}) — you can post now`, icon: ShieldCheck, iconBg: C.tealSoft });
+  };
+
   const unreadCount = notifications.filter((n) => !n.read).length;
   const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
 
@@ -2118,14 +2320,15 @@ export default function App() {
             applications={applications}
             setApplications={setApplications}
             onNeedCv={requestCv}
+            onVerifiedViaGoogle={handleGoogleVerification}
           />
         )}
         {view === "chat" && profile.role !== "Company" && <ChatView profile={profile} channels={channels} setChannels={setChannels} />}
         {view === "clubs" && profile.role !== "Company" && <ClubsView profile={profile} clubs={clubs} setClubs={setClubs} posts={projectPosts} setPosts={setProjectPosts} pushNotification={pushNotification} />}
         {view === "network" && <NetworkView profile={profile} people={initialNetwork} onConnect={handleConnect} />}
         {view === "profile" && <ProfileView profile={profile} applications={applications} onNeedCv={() => requestCv(null)} />}
-        {view === "professor" && profile.role === "Professor" && <PosterDashboard profile={profile} opportunities={opportunities} />}
-        {view === "company" && profile.role === "Company" && <PosterDashboard profile={profile} opportunities={opportunities} />}
+        {view === "professor" && profile.role === "Professor" && <PosterDashboard profile={profile} opportunities={opportunities} onVerifiedViaGoogle={handleGoogleVerification} />}
+        {view === "company" && profile.role === "Company" && <PosterDashboard profile={profile} opportunities={opportunities} onVerifiedViaGoogle={handleGoogleVerification} />}
       </div>
       {cvModalOpen && <CvGateModal onUpload={handleCvUpload} onClose={() => setCvModalOpen(false)} />}
     </div>
