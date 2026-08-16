@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Home, Briefcase, MessageCircle, Users, UserPlus, User, GraduationCap,
   Search, Plus, X, Upload, CheckCircle2, Send, Award, Building2, Calendar,
   MapPin, Tag, ChevronRight, Star, ShieldCheck, FileText, Hash, ThumbsUp,
-  ArrowLeft, Sparkles
+  ArrowLeft, Sparkles, Bell, UserCheck
 } from "lucide-react";
 
 // ---------- Design tokens ----------
@@ -397,6 +397,99 @@ const inputStyle = {
   fontSize: "14px",
 };
 
+// ---------- Notifications ----------
+function timeAgo(ts) {
+  const secs = Math.floor((Date.now() - ts) / 1000);
+  if (secs < 10) return "just now";
+  if (secs < 60) return `${secs}s ago`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ago`;
+}
+
+function NotificationBell({ notifications, onOpen, unreadCount, mobile }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const onClick = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const toggle = () => {
+    setOpen((o) => {
+      if (!o) onOpen();
+      return !o;
+    });
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={toggle}
+        className="relative flex items-center justify-center rounded-full"
+        style={mobile ? { width: 32, height: 32 } : { width: 34, height: 34, backgroundColor: C.inkSoft }}
+      >
+        <Bell size={mobile ? 17 : 16} color={mobile ? C.paper : "#C9C9E8"} />
+        {unreadCount > 0 && (
+          <span
+            className="absolute -top-0.5 -right-0.5 min-w-[15px] h-[15px] px-[3px] rounded-full flex items-center justify-center text-[9px] font-bold"
+            style={{ backgroundColor: C.coral, color: "#fff" }}
+          >
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 mt-2 w-80 max-w-[85vw] rounded-2xl overflow-hidden z-40"
+          style={{ backgroundColor: C.paperCard, border: `1px solid ${C.paperLine}`, boxShadow: "0 8px 24px rgba(27,27,58,0.18)" }}
+        >
+          <div className="px-4 py-3 border-b" style={{ borderColor: C.paperLine }}>
+            <h4 className="font-extrabold text-sm" style={{ color: C.ink }}>Notifications</h4>
+          </div>
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.length === 0 && (
+              <p className="text-sm px-4 py-6 text-center" style={{ color: C.textMuted }}>Nothing yet — activity like accepted connections will show up here.</p>
+            )}
+            {notifications.map((n) => (
+              <div key={n.id} className="px-4 py-3 flex items-start gap-2.5 border-b last:border-0" style={{ borderColor: C.paperLine, backgroundColor: n.read ? "transparent" : C.tealSoft }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5" style={{ backgroundColor: n.iconBg || C.marigold, color: C.ink }}>
+                  <n.icon size={13} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm leading-snug" style={{ color: C.ink }}>{n.text}</p>
+                  <p className="text-[11px] mt-0.5" style={{ color: C.textMuted }}>{timeAgo(n.ts)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function NotificationToast({ toast }) {
+  if (!toast) return null;
+  return (
+    <div className="fixed top-14 sm:top-4 left-1/2 -translate-x-1/2 z-50 px-4 w-full max-w-sm pointer-events-none">
+      <div
+        className="flex items-center gap-2.5 px-4 py-3 rounded-xl pointer-events-auto cc-toast-anim"
+        style={{ backgroundColor: C.ink, boxShadow: "0 8px 24px rgba(27,27,58,0.35)" }}
+      >
+        <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: toast.iconBg || C.marigold, color: C.ink }}>
+          <toast.icon size={13} />
+        </div>
+        <p className="text-sm font-semibold" style={{ color: C.paper }}>{toast.text}</p>
+      </div>
+    </div>
+  );
+}
+
 // ---------- Onboarding ----------
 const INDUSTRIES = ["Technology", "Finance & Banking", "Consulting", "E-commerce", "Manufacturing", "Healthcare", "Media", "Other"];
 
@@ -550,16 +643,19 @@ function navItemsFor(profile) {
   return items;
 }
 
-function Sidebar({ view, setView, profile }) {
+function Sidebar({ view, setView, profile, notifications, unreadCount, onOpenNotifications }) {
   const items = navItemsFor(profile);
 
   return (
     <div className="hidden md:flex w-64 shrink-0 flex-col h-screen sticky top-0" style={{ backgroundColor: C.ink }}>
-      <div className="flex items-center gap-2 px-5 py-5">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: C.marigold }}>
-          <GraduationCap size={18} color={C.ink} />
+      <div className="flex items-center justify-between gap-2 px-5 py-5">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: C.marigold }}>
+            <GraduationCap size={18} color={C.ink} />
+          </div>
+          <span className="font-extrabold text-lg truncate" style={{ color: C.paper }}>CampusConnect</span>
         </div>
-        <span className="font-extrabold text-lg" style={{ color: C.paper }}>CampusConnect</span>
+        <NotificationBell notifications={notifications} unreadCount={unreadCount} onOpen={onOpenNotifications} />
       </div>
       <nav className="flex-1 px-3 space-y-1 mt-2">
         {items.map((it) => {
@@ -608,7 +704,7 @@ function Sidebar({ view, setView, profile }) {
 }
 
 // ---------- Mobile top bar + bottom nav ----------
-function MobileTopBar({ profile, setView }) {
+function MobileTopBar({ profile, setView, notifications, unreadCount, onOpenNotifications }) {
   return (
     <div className="flex md:hidden items-center justify-between px-4 py-3 fixed top-0 left-0 right-0 z-30" style={{ backgroundColor: C.ink }}>
       <div className="flex items-center gap-2">
@@ -617,12 +713,15 @@ function MobileTopBar({ profile, setView }) {
         </div>
         <span className="font-extrabold text-base" style={{ color: C.paper }}>CampusConnect</span>
       </div>
-      <button onClick={() => setView("profile")} className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 relative" style={{ backgroundColor: C.marigold, color: C.ink }}>
-        {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
-        {(profile.role === "Company" || profile.role === "Professor") && !profile.isVerified && (
-          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: C.coral, borderColor: C.ink }} />
-        )}
-      </button>
+      <div className="flex items-center gap-3">
+        <NotificationBell notifications={notifications} unreadCount={unreadCount} onOpen={onOpenNotifications} mobile />
+        <button onClick={() => setView("profile")} className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0 relative" style={{ backgroundColor: C.marigold, color: C.ink }}>
+          {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+          {(profile.role === "Company" || profile.role === "Professor") && !profile.isVerified && (
+            <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style={{ backgroundColor: C.coral, borderColor: C.ink }} />
+          )}
+        </button>
+      </div>
     </div>
   );
 }
@@ -1277,11 +1376,19 @@ function CreateClubModal({ onClose, onSubmit }) {
 }
 
 // ---------- Network ----------
-function NetworkView({ profile, people }) {
+function NetworkView({ profile, people, onConnect }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState({});
 
-  const cycle = (id) => setStatus((prev) => ({ ...prev, [id]: prev[id] === "Connected" ? "Connected" : prev[id] === "Pending" ? "Connected" : "Pending" }));
+  const connect = (p) => {
+    if (status[p.id]) return; // already requested / connected
+    setStatus((prev) => ({ ...prev, [p.id]: "Pending" }));
+    onConnect(p, "Pending");
+    setTimeout(() => {
+      setStatus((prev) => ({ ...prev, [p.id]: "Connected" }));
+      onConnect(p, "Connected");
+    }, 2500);
+  };
 
   const filtered = people.filter((p) => (p.name + p.college + p.major).toLowerCase().includes(query.toLowerCase()));
 
@@ -1310,7 +1417,7 @@ function NetworkView({ profile, people }) {
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {p.skills.map((s) => <Badge key={s} bg={C.paper} fg={C.inkSoft}>{s}</Badge>)}
                 </div>
-                <SecondaryButton active={!!status[p.id]} onClick={() => cycle(p.id)} icon={status[p.id] === "Connected" ? CheckCircle2 : UserPlus}>
+                <SecondaryButton active={!!status[p.id]} onClick={() => connect(p)} icon={status[p.id] === "Connected" ? CheckCircle2 : status[p.id] === "Pending" ? undefined : UserPlus}>
                   {status[p.id] === "Connected" ? "Connected" : status[p.id] === "Pending" ? "Request sent" : "Connect"}
                 </SecondaryButton>
               </div>
@@ -1440,6 +1547,8 @@ export default function App() {
   const [channels, setChannels] = useState(seedChannels());
   const [cvModalOpp, setCvModalOpp] = useState(null);
   const [cvModalOpen, setCvModalOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [toast, setToast] = useState(null);
 
   if (!profile) {
     return <Onboarding onComplete={setProfile} />;
@@ -1459,10 +1568,31 @@ export default function App() {
     setCvModalOpen(true);
   };
 
+  const pushNotification = ({ text, icon, iconBg, showToast = true }) => {
+    const n = { id: "n" + Date.now() + Math.random().toString(36).slice(2, 6), text, icon, iconBg, ts: Date.now(), read: false };
+    setNotifications((prev) => [n, ...prev]);
+    if (showToast) {
+      setToast(n);
+      setTimeout(() => setToast((cur) => (cur && cur.id === n.id ? null : cur)), 3500);
+    }
+  };
+
+  const handleConnect = (person, stage) => {
+    if (stage === "Pending") {
+      pushNotification({ text: `Connection request sent to ${person.name}`, icon: UserPlus, iconBg: C.tealSoft, showToast: false });
+    } else {
+      pushNotification({ text: `${person.name} accepted your connection request`, icon: UserCheck, iconBg: C.marigold });
+    }
+  };
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+  const markAllRead = () => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+
   return (
     <div className="flex flex-col md:flex-row min-h-screen" style={{ backgroundColor: C.paper, fontFamily: "system-ui, -apple-system, sans-serif" }}>
-      <Sidebar view={view} setView={setView} profile={profile} />
-      <MobileTopBar profile={profile} setView={setView} />
+      <Sidebar view={view} setView={setView} profile={profile} notifications={notifications} unreadCount={unreadCount} onOpenNotifications={markAllRead} />
+      <MobileTopBar profile={profile} setView={setView} notifications={notifications} unreadCount={unreadCount} onOpenNotifications={markAllRead} />
+      <NotificationToast toast={toast} />
       <div className="flex-1 p-4 pt-16 pb-20 sm:p-6 sm:pt-16 sm:pb-20 md:p-8 md:pt-8 md:pb-8 overflow-y-auto">
         {view === "home" && <HomeView profile={profile} setView={setView} opportunities={opportunities} />}
         {view === "opportunities" && (
@@ -1477,7 +1607,7 @@ export default function App() {
         )}
         {view === "chat" && profile.role !== "Company" && <ChatView profile={profile} channels={channels} setChannels={setChannels} />}
         {view === "clubs" && profile.role !== "Company" && <ClubsView profile={profile} clubs={clubs} setClubs={setClubs} />}
-        {view === "network" && <NetworkView profile={profile} people={initialNetwork} />}
+        {view === "network" && <NetworkView profile={profile} people={initialNetwork} onConnect={handleConnect} />}
         {view === "profile" && <ProfileView profile={profile} applications={applications} onNeedCv={() => requestCv(null)} />}
         {view === "professor" && profile.role === "Professor" && <PosterDashboard profile={profile} opportunities={opportunities} />}
         {view === "company" && profile.role === "Company" && <PosterDashboard profile={profile} opportunities={opportunities} />}
