@@ -2040,12 +2040,14 @@ function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification
     );
   }
 
-  const FILTERS = ["All", "Major clubs", "Interest clubs", "New", "Most active"];
+  const FILTERS = ["All", "My Clubs", "Major clubs", "Interest clubs", "New", "Most active"];
+  const joinedCount = Object.values(joined).filter(Boolean).length;
   const currentYear = new Date().getFullYear();
   const filtered = clubs.filter((c) => {
     const q = search.toLowerCase();
     const matchesSearch = !q || c.name.toLowerCase().includes(q) || c.tags.some((t) => t.toLowerCase().includes(q)) || c.tagline.toLowerCase().includes(q);
     if (!matchesSearch) return false;
+    if (filter === "My Clubs") return !!joined[c.id];
     if (filter === "Major clubs") return c.category === "Major club";
     if (filter === "Interest clubs") return c.category === "Interest club";
     if (filter === "New") return c.founded >= currentYear;
@@ -2061,6 +2063,9 @@ function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification
         <div>
           <Eyebrow color={C.marigoldDark}>Community</Eyebrow>
           <h1 className="font-black text-2xl sm:text-3xl" style={{ color: C.ink }}>Clubs</h1>
+          {joinedCount > 0 && (
+            <p className="text-xs mt-1" style={{ color: C.teal }}>You're in {joinedCount} club{joinedCount === 1 ? "" : "s"}</p>
+          )}
         </div>
         {tab === "clubs" && <PrimaryButton icon={Plus} onClick={() => setShowCreate(true)}>Create a club</PrimaryButton>}
       </div>
@@ -2088,9 +2093,15 @@ function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification
 
           <div className="flex flex-wrap gap-2 mb-6">
             {FILTERS.map((f) => (
-              <SecondaryButton key={f} active={filter === f} onClick={() => setFilter(f)}>{f}</SecondaryButton>
+              <SecondaryButton key={f} active={filter === f} onClick={() => setFilter(f)}>
+                {f}{f === "My Clubs" && joinedCount > 0 ? ` (${joinedCount})` : ""}
+              </SecondaryButton>
             ))}
           </div>
+
+          {filter === "My Clubs" && joinedCount === 0 && (
+            <p className="text-sm mb-6" style={{ color: C.textMuted }}>You haven't joined any clubs yet — browse below and hit "Join club" to get started.</p>
+          )}
 
           {!search && filter === "All" && suggested.length > 0 && (
             <>
@@ -2307,10 +2318,13 @@ function FeaturedClubBanner({ club, joined, onToggle, onOpen }) {
 // ---------- Club detail ----------
 function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, posts, setPosts, pushNotification, onBack }) {
   const [tab, setTab] = useState("feed");
+  const [postTitle, setPostTitle] = useState("");
+  const [postBody, setPostBody] = useState("");
   const clubMembers = getClubMembers(club, Math.min(10, club.members));
   const clubPosts = posts.filter((p) => p.club === club.name);
 
   const rsvp = (eventTitle) => {
+    if (!joined) { onToggleJoin(); return; }
     setClubs((prev) => prev.map((c) => {
       if (c.id !== club.id) return c;
       return {
@@ -2318,6 +2332,31 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
         events: c.events.map((ev) => ev.title === eventTitle ? { ...ev, rsvpedByMe: !ev.rsvpedByMe, attendeeBump: ev.rsvpedByMe ? -1 : 1 } : ev),
       };
     }));
+  };
+
+  const postToClub = () => {
+    if (!postTitle.trim() || !postBody.trim()) return;
+    const newPost = {
+      id: "p" + Date.now(),
+      author: profile.name,
+      college: profile.college || profile.companyName,
+      title: postTitle.trim(),
+      body: postBody.trim(),
+      club: club.name,
+      likes: 0,
+      likedByMe: false,
+      ts: Date.now(),
+    };
+    setPosts((prev) => [newPost, ...prev]);
+    setPostTitle("");
+    setPostBody("");
+    const reactors = initialNetwork.filter((p) => p.name !== profile.name);
+    const reactor = reactors[Math.floor(Math.random() * reactors.length)];
+    const delay = 3000 + Math.random() * 3000;
+    setTimeout(() => {
+      setPosts((prev) => prev.map((p) => (p.id === newPost.id ? { ...p, likes: p.likes + 1 } : p)));
+      pushNotification({ text: `${reactor.name} liked your post in ${club.name}`, icon: Heart, iconBg: C.coralSoft });
+    }, delay);
   };
 
   return (
@@ -2338,7 +2377,10 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
         <div className="pt-10 px-5 pb-5" style={{ backgroundColor: C.paperCard }}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
-              <h1 className="font-black text-xl sm:text-2xl" style={{ color: C.ink }}>{club.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-black text-xl sm:text-2xl" style={{ color: C.ink }}>{club.name}</h1>
+                {joined && <Badge bg={C.tealSoft} fg={C.teal}><span className="inline-flex items-center gap-1"><CheckCircle2 size={11} /> Member</span></Badge>}
+              </div>
               <p className="text-sm italic mt-0.5" style={{ color: C.textMuted }}>{club.tagline}</p>
             </div>
             <SecondaryButton active={joined} onClick={onToggleJoin} icon={joined ? CheckCircle2 : Plus}>
@@ -2366,6 +2408,38 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
 
       {tab === "feed" && (
         <div className="space-y-4">
+          {joined ? (
+            <Card>
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: club.color, color: "#fff" }}>
+                  {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <input
+                    style={{ ...inputStyle, marginBottom: 8, fontWeight: 600 }}
+                    placeholder={`Post something in ${club.name}...`}
+                    value={postTitle}
+                    onChange={(e) => setPostTitle(e.target.value)}
+                  />
+                  <textarea
+                    style={{ ...inputStyle, minHeight: 60, marginBottom: 8 }}
+                    placeholder="Share an update, ask for help, or post a project..."
+                    value={postBody}
+                    onChange={(e) => setPostBody(e.target.value)}
+                  />
+                  <PrimaryButton onClick={postToClub} icon={Sparkles} style={{ backgroundColor: club.color, color: "#fff" }}>Post to club</PrimaryButton>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <Card style={{ backgroundColor: C.paper, borderColor: C.paperLine }}>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm" style={{ color: C.inkSoft }}>Join {club.name} to post in the club feed and RSVP to events.</p>
+                <SecondaryButton onClick={onToggleJoin} icon={Plus}>{club.joinType === "approval" ? "Request to join" : "Join club"}</SecondaryButton>
+              </div>
+            </Card>
+          )}
+
           {club.announcements && club.announcements.length > 0 && (
             <Card style={{ backgroundColor: C.tealSoft, borderColor: "transparent" }}>
               <h4 className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: C.teal }}>📌 Pinned announcements</h4>
@@ -2380,7 +2454,7 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
             </Card>
           )}
           {clubPosts.length === 0 && (
-            <p className="text-sm" style={{ color: C.textMuted }}>No project posts tagged to this club yet — post one from the Project Feed and tag "{club.name}".</p>
+            <p className="text-sm" style={{ color: C.textMuted }}>No posts in this club's feed yet{joined ? " — be the first." : "."}</p>
           )}
           {clubPosts.map((p) => (
             <Card key={p.id}>
@@ -2407,6 +2481,11 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
 
       {tab === "events" && (
         <div className="space-y-3">
+          {!joined && (club.events && club.events.length > 0) && (
+            <Card style={{ backgroundColor: C.paper, borderColor: C.paperLine }}>
+              <p className="text-sm" style={{ color: C.inkSoft }}>Join {club.name} to RSVP — you can still see what's coming up.</p>
+            </Card>
+          )}
           {(!club.events || club.events.length === 0) && <p className="text-sm" style={{ color: C.textMuted }}>No upcoming events scheduled.</p>}
           {club.events && club.events.map((ev) => {
             const count = ev.attendees + (ev.attendeeBump || 0);
@@ -2422,7 +2501,7 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
                     </div>
                   </div>
                   <SecondaryButton active={ev.rsvpedByMe} onClick={() => rsvp(ev.title)} icon={ev.rsvpedByMe ? CheckCircle2 : Plus}>
-                    {ev.rsvpedByMe ? "Going" : "RSVP"}
+                    {ev.rsvpedByMe ? "Going" : joined ? "RSVP" : "Join to RSVP"}
                   </SecondaryButton>
                 </div>
               </Card>
@@ -2446,6 +2525,14 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
           </div>
           <h4 className="font-extrabold text-sm mb-3" style={{ color: C.ink }}>Members ({club.members})</h4>
           <div className="flex flex-wrap gap-2">
+            {joined && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ backgroundColor: C.tealSoft, border: `1px solid ${C.teal}` }}>
+                <div className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px]" style={{ backgroundColor: colorForName(profile.name), color: "#1e1f22" }}>
+                  {profile.name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                </div>
+                <span className="text-xs font-semibold" style={{ color: C.teal }}>{profile.name} (you)</span>
+              </div>
+            )}
             {clubMembers.map((name) => (
               <div key={name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ backgroundColor: C.paper }}>
                 <div className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px]" style={{ backgroundColor: colorForName(name), color: "#1e1f22" }}>
