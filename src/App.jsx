@@ -680,6 +680,26 @@ function getClubMembers(club, count = 6) {
   return picked;
 }
 
+const CLUB_CANNED_REPLIES = [
+  "Welcome! Great to have you here.",
+  "Nice, count me in for that.",
+  "Anyone got notes from last time?",
+  "Same, been meaning to ask about this too.",
+  "See you all at the next meetup!",
+  "Haha true 😄",
+  "+1, let's do it",
+  "Can we get a time confirmed for this?",
+  "Love this energy in the group.",
+  "Someone should pin this for the newer members.",
+];
+function seedClubChat(club) {
+  const officer = (club.officers && club.officers[0]) || getClubMembers(club, 1)[0];
+  return [
+    { id: "cm" + club.id + "1", user: officer, text: `Welcome to ${club.name}! Drop a hi and check the Events tab for what's coming up.`, ts: Date.now() - 1000 * 60 * 60 * 5 },
+    { id: "cm" + club.id + "2", user: getClubMembers(club, 2)[1], text: `Excited to be part of this — ${club.tagline.toLowerCase()}`, ts: Date.now() - 1000 * 60 * 60 * 2 },
+  ];
+}
+
 const initialNetwork = [
   { id: "n1", name: "Rhea Kapadia", college: "VJTI Mumbai", major: "Mechanical Engineering", role: "Student", bio: "3rd year, into robotics and CAD.", skills: ["SolidWorks", "MATLAB"] },
   { id: "n2", name: "Prof. Anand Rege", college: "VJTI Mumbai", major: "Mechanical Engineering", role: "Professor", bio: "Researching materials science and EV design.", skills: ["Materials", "FEA"] },
@@ -2320,8 +2340,29 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
   const [tab, setTab] = useState("feed");
   const [postTitle, setPostTitle] = useState("");
   const [postBody, setPostBody] = useState("");
+  const [chatInput, setChatInput] = useState("");
   const clubMembers = getClubMembers(club, Math.min(10, club.members));
   const clubPosts = posts.filter((p) => p.club === club.name);
+
+  const sendClubMessage = () => {
+    if (!chatInput.trim()) return;
+    const text = chatInput.trim();
+    setClubs((prev) => prev.map((c) => c.id === club.id
+      ? { ...c, chatMessages: [...(c.chatMessages || []), { id: "cm" + Date.now(), user: profile.name, text, ts: Date.now() }] }
+      : c));
+    setChatInput("");
+
+    const candidates = (club.officers || []).concat(clubMembers).filter((n) => n !== profile.name);
+    const responder = candidates[Math.floor(Math.random() * candidates.length)];
+    const reply = CLUB_CANNED_REPLIES[Math.floor(Math.random() * CLUB_CANNED_REPLIES.length)];
+    const delay = 2500 + Math.random() * 3500;
+    setTimeout(() => {
+      setClubs((prev) => prev.map((c) => c.id === club.id
+        ? { ...c, chatMessages: [...(c.chatMessages || []), { id: "cm" + Date.now(), user: responder, text: reply, ts: Date.now() }] }
+        : c));
+      pushNotification({ text: `${responder} replied in ${club.name}`, icon: MessageCircle, iconBg: C.tealSoft, showToast: false });
+    }, delay);
+  };
 
   const rsvp = (eventTitle) => {
     if (!joined) { onToggleJoin(); return; }
@@ -2401,10 +2442,52 @@ function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, 
 
       <div className="flex gap-2 mb-5 overflow-x-auto">
         <SecondaryButton active={tab === "feed"} onClick={() => setTab("feed")} icon={Sparkles}>Feed</SecondaryButton>
+        <SecondaryButton active={tab === "chat"} onClick={() => setTab("chat")} icon={MessageCircle}>Chat</SecondaryButton>
         <SecondaryButton active={tab === "events"} onClick={() => setTab("events")} icon={Calendar}>Events</SecondaryButton>
         <SecondaryButton active={tab === "members"} onClick={() => setTab("members")} icon={Users}>Members</SecondaryButton>
         <SecondaryButton active={tab === "about"} onClick={() => setTab("about")} icon={FileText}>About</SecondaryButton>
       </div>
+
+      {tab === "chat" && (
+        <div className="rounded-2xl overflow-hidden flex flex-col" style={{ border: `1px solid ${C.paperLine}`, backgroundColor: C.paperCard, height: "28rem" }}>
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5">
+            {(club.chatMessages || []).length === 0 && (
+              <p className="text-sm" style={{ color: C.textMuted }}>No messages yet — say hi to your fellow members.</p>
+            )}
+            {(club.chatMessages || []).map((m) => (
+              <div key={m.id} className="flex gap-2.5">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: colorForName(m.user), color: "#1e1f22" }}>
+                  {m.user.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-bold text-sm" style={{ color: colorForName(m.user) }}>{m.user}</span>
+                    <span className="text-[11px]" style={{ color: C.textMuted }}>{timeAgo(m.ts)}</span>
+                  </div>
+                  <p className="text-sm break-words" style={{ color: C.inkSoft }}>{m.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {joined ? (
+            <div className="p-3 border-t flex gap-2" style={{ borderColor: C.paperLine }}>
+              <input
+                style={{ ...inputStyle, flex: 1 }}
+                placeholder={`Message ${club.name}`}
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendClubMessage()}
+              />
+              <PrimaryButton icon={Send} onClick={sendClubMessage} style={{ backgroundColor: club.color, color: "#fff" }} />
+            </div>
+          ) : (
+            <div className="p-3 border-t flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: C.paperLine, backgroundColor: C.paper }}>
+              <p className="text-sm" style={{ color: C.inkSoft }}>Join to chat with other {club.name} members.</p>
+              <SecondaryButton onClick={onToggleJoin} icon={Plus}>{club.joinType === "approval" ? "Request to join" : "Join club"}</SecondaryButton>
+            </div>
+          )}
+        </div>
+      )}
 
       {tab === "feed" && (
         <div className="space-y-4">
@@ -2833,7 +2916,7 @@ export default function App() {
   const [view, setView] = useState("home");
   const [opportunities, setOpportunities] = useState(initialOpportunities);
   const [applications, setApplications] = useState([]);
-  const [clubs, setClubs] = useState(initialClubs);
+  const [clubs, setClubs] = useState(() => initialClubs.map((c) => ({ ...c, chatMessages: seedClubChat(c) })));
   const [projectPosts, setProjectPosts] = useState(initialProjectPosts);
   const [channels, setChannels] = useState(seedChannels());
   const [cvModalOpp, setCvModalOpp] = useState(null);
