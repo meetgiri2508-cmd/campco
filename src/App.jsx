@@ -508,12 +508,177 @@ const initialOpportunities = [
   },
 ];
 
+const CLUB_ICONS = ["⚙️", "💻", "📷", "🎤", "🎨", "🎭", "♟️", "🏏", "🎵", "🌱", "🚀", "📚", "🧪", "⚖️", "🩺", "🎬"];
+const CLUB_COLORS = ["#F2A93B", "#0E7C7B", "#E4572E", "#5865F2", "#57F287", "#EB459E", "#9B59B6", "#3498DB"];
+
 const initialClubs = [
-  { id: "c1", name: "Mechanical Engineers' Circle", category: "Major club", major: "Mechanical Engineering", desc: "Design challenges, workshop visits, and SAE India prep.", members: 142, joinType: "open" },
-  { id: "c2", name: "Codeware", category: "Major club", major: "Computer Engineering", desc: "Weekly DSA rounds, hackathon squads, and open-source sprints.", members: 261, joinType: "open" },
-  { id: "c3", name: "Lens & Light Photography", category: "Interest club", major: null, desc: "Street photography walks across South Bombay and beyond.", members: 89, joinType: "open" },
-  { id: "c4", name: "Mumbai Debate Society", category: "Interest club", major: null, desc: "Inter-college BP and Asian parliamentary debate practice.", members: 54, joinType: "approval" },
+  {
+    id: "c1", name: "Mechanical Engineers' Circle", category: "Major club", major: "Mechanical Engineering",
+    icon: "🛠️", color: "#F2A93B", tagline: "Design, build, break, repeat.",
+    desc: "Design challenges, workshop visits, and SAE India prep. We run a termly build sprint culminating in a demo day judged by alumni.",
+    members: 142, joinType: "open", tags: ["SAE India", "CAD", "Workshops"],
+    founded: 2019, activity: "Very active", officers: ["Rhea Kapadia", "Omkar Jadhav"],
+    events: [
+      { title: "Baja SAE design review", date: "Aug 28", location: "Workshop Lab, VJTI", attendees: 34, rsvpedByMe: false },
+      { title: "Factory visit — Mahindra plant", date: "Sep 5", location: "Kandivali", attendees: 28, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Demo day judging panel confirmed — two alumni from Mahindra R&D joining this year.", ts: Date.now() - 1000 * 60 * 60 * 6 },
+      { text: "Chassis sub-team needs 2 more members before Friday's sprint.", ts: Date.now() - 1000 * 60 * 60 * 30 },
+    ],
+  },
+  {
+    id: "c2", name: "Codeware", category: "Major club", major: "Computer Engineering",
+    icon: "💻", color: "#0E7C7B", tagline: "DSA by day, hackathons by night.",
+    desc: "Weekly DSA rounds, hackathon squads, and open-source sprints. We've placed teams in the top 10 at Smart India Hackathon two years running.",
+    members: 261, joinType: "open", tags: ["Hackathons", "Open Source", "DSA"],
+    founded: 2018, activity: "Very active", officers: ["Aditya Shah", "Simran Rao"],
+    events: [
+      { title: "Contest #14 — Codeforces div 3 watch party", date: "Aug 24", location: "CS Lab 2", attendees: 52, rsvpedByMe: false },
+      { title: "Open-source sprint: first PR day", date: "Aug 30", location: "Online", attendees: 37, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Team formation for Smart India Hackathon closes this weekend — DM if you need teammates.", ts: Date.now() - 1000 * 60 * 45 },
+      { text: "Recording from last week's system design session is up in the channel.", ts: Date.now() - 1000 * 60 * 60 * 20 },
+    ],
+  },
+  {
+    id: "c3", name: "Lens & Light Photography", category: "Interest club", major: null,
+    icon: "📸", color: "#E4572E", tagline: "Chasing golden hour across Bombay.",
+    desc: "Street photography walks across South Bombay and beyond, plus monthly print critiques and a end-of-year gallery show.",
+    members: 89, joinType: "open", tags: ["Street Photography", "Film", "Editing"],
+    founded: 2021, activity: "Steady", officers: ["Meher D'Souza"],
+    events: [
+      { title: "Sunday walk: Bandra bandstand at sunrise", date: "Aug 23", location: "Bandra", attendees: 19, rsvpedByMe: false },
+      { title: "Print critique night", date: "Sep 2", location: "Fine Arts Room", attendees: 14, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Bring your own film or borrow a camera from the club kit for Sunday's walk.", ts: Date.now() - 1000 * 60 * 60 * 3 },
+    ],
+  },
+  {
+    id: "c4", name: "Mumbai Debate Society", category: "Interest club", major: null,
+    icon: "🎤", color: "#8B5CF6", tagline: "Change my mind — properly, this time.",
+    desc: "Inter-college BP and Asian parliamentary debate practice, with a competitive circuit team that travels to nationals.",
+    members: 54, joinType: "approval", tags: ["British Parliamentary", "Public Speaking"],
+    founded: 2017, activity: "Steady", officers: ["Kabir Mehta"],
+    events: [
+      { title: "Novice debate bootcamp", date: "Aug 26", location: "Seminar Hall 3", attendees: 22, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Nationals squad shortlist goes up Monday after this week's practice rounds.", ts: Date.now() - 1000 * 60 * 60 * 12 },
+    ],
+  },
+  {
+    id: "c5", name: "E-Cell Mumbai", category: "Interest club", major: null,
+    icon: "🚀", color: "#D6890F", tagline: "Turn your side project into a startup.",
+    desc: "Pitch nights, founder AMAs, and a pre-seed pitch competition with real investor judges every spring.",
+    members: 176, joinType: "open", tags: ["Startups", "Pitching", "Networking"],
+    founded: 2020, activity: "Very active", officers: ["Aditya Shah"],
+    events: [
+      { title: "Founder AMA: Zepto co-founder", date: "Sep 1", location: "Auditorium", attendees: 61, rsvpedByMe: false },
+      { title: "Pitch night — round 1", date: "Sep 10", location: "Innovation Cell", attendees: 33, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Applications for the pre-seed pitch competition open next week.", ts: Date.now() - 1000 * 60 * 60 * 9 },
+    ],
+  },
+  {
+    id: "c6", name: "Civil Builders Guild", category: "Major club", major: "Civil Engineering",
+    icon: "🏗️", color: "#3B7A78", tagline: "From blueprints to site visits.",
+    desc: "Site visits, structural design competitions, and a mentorship track with practicing civil engineers in Mumbai.",
+    members: 67, joinType: "open", tags: ["Site Visits", "AutoCAD", "Structures"],
+    founded: 2019, activity: "Steady", officers: ["Devansh Patil"],
+    events: [
+      { title: "Metro line site visit", date: "Aug 29", location: "Mumbai Metro Line 3", attendees: 24, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Structural design competition brief released — teams of 3, submissions due Sep 20.", ts: Date.now() - 1000 * 60 * 60 * 15 },
+    ],
+  },
+  {
+    id: "c7", name: "Finance & Investment Club", category: "Interest club", major: "Commerce",
+    icon: "📈", color: "#22A55A", tagline: "Reading balance sheets for fun.",
+    desc: "Stock pitch competitions, a paper trading league, and CA/CFA prep groups that run through exam season.",
+    members: 134, joinType: "open", tags: ["Stock Pitches", "CFA Prep", "Trading League"],
+    founded: 2018, activity: "Very active", officers: ["Kabir Mehta"],
+    events: [
+      { title: "Paper trading league kickoff", date: "Aug 25", location: "Commerce Block", attendees: 45, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "This month's stock pitch winner gets a shadow day at Kotak's equity research desk.", ts: Date.now() - 1000 * 60 * 60 * 18 },
+    ],
+  },
+  {
+    id: "c8", name: "Acapella Collective", category: "Interest club", major: null,
+    icon: "🎵", color: "#EC4899", tagline: "No instruments, all vibes.",
+    desc: "Weekly rehearsals building toward inter-college acapella competitions and a winter showcase.",
+    members: 48, joinType: "approval", tags: ["Vocals", "Beatboxing", "Performance"],
+    founded: 2023, activity: "New", officers: ["Tanya Sequeira"],
+    events: [
+      { title: "Open audition day", date: "Aug 27", location: "Music Room", attendees: 17, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Auditions open to all years this cycle — no prior acapella experience needed.", ts: Date.now() - 1000 * 60 * 60 * 26 },
+    ],
+  },
+  {
+    id: "c9", name: "Kaleidoscope Dramatics", category: "Interest club", major: null,
+    icon: "🎭", color: "#C2410C", tagline: "Drama that isn't just group chats.",
+    desc: "Original scripts, an annual one-act festival, and backstage crews for lighting, sets, and sound.",
+    members: 72, joinType: "open", tags: ["Theatre", "Scriptwriting", "Stage Craft"],
+    founded: 2016, activity: "Steady", officers: ["Farhan Sheikh"],
+    events: [
+      { title: "One-act festival auditions", date: "Sep 3", location: "Black Box Theatre", attendees: 20, rsvpedByMe: false },
+    ],
+    announcements: [],
+  },
+  {
+    id: "c10", name: "Competitive Coding Club", category: "Major club", major: "Computer Engineering",
+    icon: "⚡", color: "#3B82F6", tagline: "Rated contests, unrated banter.",
+    desc: "ICPC-style training, weekly rated contests, and a mentorship ladder pairing Div 1 coders with beginners.",
+    members: 198, joinType: "open", tags: ["ICPC", "Competitive Programming"],
+    founded: 2019, activity: "Very active", officers: ["Devansh Patil", "Aditya Shah"],
+    events: [
+      { title: "Mock ICPC regional", date: "Sep 7", location: "Computer Lab 4", attendees: 40, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Mentorship ladder pairings for this semester are posted in the channel.", ts: Date.now() - 1000 * 60 * 60 * 8 },
+    ],
+  },
+  {
+    id: "c11", name: "Quill Literary Circle", category: "Interest club", major: "Arts & Humanities",
+    icon: "📚", color: "#92400E", tagline: "Words, workshopped weekly.",
+    desc: "Poetry slams, short-fiction workshops, and a termly zine that anyone can submit to.",
+    members: 41, joinType: "open", tags: ["Poetry", "Zine", "Workshops"],
+    founded: 2022, activity: "New", officers: ["Ishita Save"],
+    events: [
+      { title: "Open mic poetry night", date: "Aug 30", location: "Library Courtyard", attendees: 15, rsvpedByMe: false },
+    ],
+    announcements: [],
+  },
+  {
+    id: "c12", name: "Chem-E Society", category: "Major club", major: "Chemical Engineering",
+    icon: "🧪", color: "#0891B2", tagline: "Reactions, ratios, and road trips to plants.",
+    desc: "Industry plant visits, a process-design case competition, and safety-certification workshops.",
+    members: 58, joinType: "open", tags: ["Plant Visits", "Process Design"],
+    founded: 2018, activity: "Steady", officers: ["Rutuja More"],
+    events: [
+      { title: "Reliance refinery visit (limited seats)", date: "Sep 12", location: "Jamnagar (day trip)", attendees: 26, rsvpedByMe: false },
+    ],
+    announcements: [
+      { text: "Refinery visit seats are first-come — sign-up sheet posted in the channel.", ts: Date.now() - 1000 * 60 * 60 * 4 },
+    ],
+  },
 ];
+
+function getClubMembers(club, count = 6) {
+  const h = hashStr(club.id);
+  const start = h % FILLER_MEMBERS.length;
+  const picked = [];
+  for (let i = 0; i < count; i++) picked.push(FILLER_MEMBERS[(start + i) % FILLER_MEMBERS.length]);
+  return picked;
+}
 
 const initialNetwork = [
   { id: "n1", name: "Rhea Kapadia", college: "VJTI Mumbai", major: "Mechanical Engineering", role: "Student", bio: "3rd year, into robotics and CAD.", skills: ["SolidWorks", "MATLAB"] },
@@ -1843,8 +2008,52 @@ function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification
   const [showCreate, setShowCreate] = useState(false);
   const [joined, setJoined] = useState({});
   const [tab, setTab] = useState("clubs");
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState("All");
+  const [openClubId, setOpenClubId] = useState(null);
 
-  const toggleJoin = (id) => setJoined((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggleJoin = (id) => {
+    const club = clubs.find((c) => c.id === id);
+    const willJoin = !joined[id];
+    setJoined((prev) => ({ ...prev, [id]: willJoin }));
+    if (willJoin) {
+      pushNotification({ text: `You joined ${club.name} 🎉`, icon: Users, iconBg: C.tealSoft, showToast: false });
+    }
+  };
+
+  const openClub = openClubId ? clubs.find((c) => c.id === openClubId) : null;
+
+  if (openClub) {
+    return (
+      <ClubDetailView
+        club={openClub}
+        profile={profile}
+        joined={!!joined[openClub.id]}
+        onToggleJoin={() => toggleJoin(openClub.id)}
+        clubs={clubs}
+        setClubs={setClubs}
+        posts={posts}
+        setPosts={setPosts}
+        pushNotification={pushNotification}
+        onBack={() => setOpenClubId(null)}
+      />
+    );
+  }
+
+  const FILTERS = ["All", "Major clubs", "Interest clubs", "New", "Most active"];
+  const currentYear = new Date().getFullYear();
+  const filtered = clubs.filter((c) => {
+    const q = search.toLowerCase();
+    const matchesSearch = !q || c.name.toLowerCase().includes(q) || c.tags.some((t) => t.toLowerCase().includes(q)) || c.tagline.toLowerCase().includes(q);
+    if (!matchesSearch) return false;
+    if (filter === "Major clubs") return c.category === "Major club";
+    if (filter === "Interest clubs") return c.category === "Interest club";
+    if (filter === "New") return c.founded >= currentYear;
+    if (filter === "Most active") return c.activity === "Very active";
+    return true;
+  });
+  const suggested = filtered.filter((c) => c.major === profile.major);
+  const featured = [...clubs].sort((a, b) => b.members - a.members)[0];
 
   return (
     <div className="max-w-5xl">
@@ -1863,17 +2072,44 @@ function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification
 
       {tab === "clubs" && (
         <>
-          <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>Suggested for {profile.major}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-            {clubs.filter((c) => c.major === profile.major).map((c) => (
-              <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
+          {!search && filter === "All" && (
+            <FeaturedClubBanner
+              club={featured}
+              joined={!!joined[featured.id]}
+              onToggle={() => toggleJoin(featured.id)}
+              onOpen={() => setOpenClubId(featured.id)}
+            />
+          )}
+
+          <div className="relative mb-4 max-w-md">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: C.textMuted }} />
+            <input style={{ ...inputStyle, paddingLeft: 34 }} placeholder="Search clubs by name or tag" value={search} onChange={(e) => setSearch(e.target.value)} />
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-6">
+            {FILTERS.map((f) => (
+              <SecondaryButton key={f} active={filter === f} onClick={() => setFilter(f)}>{f}</SecondaryButton>
             ))}
           </div>
 
-          <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>All clubs</h2>
+          {!search && filter === "All" && suggested.length > 0 && (
+            <>
+              <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>Suggested for {profile.major}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                {suggested.map((c) => (
+                  <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} onOpen={() => setOpenClubId(c.id)} />
+                ))}
+              </div>
+            </>
+          )}
+
+          <h2 className="font-extrabold text-sm uppercase tracking-wide mb-3" style={{ color: C.teal }}>
+            {search || filter !== "All" ? `${filtered.length} club${filtered.length === 1 ? "" : "s"} found` : "All clubs"}
+          </h2>
+          {filtered.length === 0 && <p className="text-sm" style={{ color: C.textMuted }}>No clubs match that search — try a different term or create one yourself.</p>}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {clubs.map((c) => (
-              <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} />
+            {filtered.map((c) => (
+              <ClubCard key={c.id} club={c} joined={joined[c.id]} onToggle={() => toggleJoin(c.id)} onOpen={() => setOpenClubId(c.id)} />
             ))}
           </div>
         </>
@@ -1885,6 +2121,7 @@ function ClubsView({ profile, clubs, setClubs, posts, setPosts, pushNotification
 
       {showCreate && (
         <CreateClubModal
+          profile={profile}
           onClose={() => setShowCreate(false)}
           onSubmit={(c) => { setClubs((prev) => [c, ...prev]); setShowCreate(false); }}
         />
@@ -2003,27 +2240,272 @@ function ProjectFeed({ profile, clubs, posts, setPosts, pushNotification }) {
   );
 }
 
-function ClubCard({ club, joined, onToggle }) {
+function ClubCard({ club, joined, onToggle, onOpen }) {
   return (
-    <Card>
-      <div className="flex items-start justify-between mb-2">
-        <Badge bg={club.major ? C.tealSoft : C.coralSoft} fg={club.major ? C.teal : C.coral}>{club.category}</Badge>
-        <span className="text-xs font-semibold" style={{ color: C.textMuted }}>{club.members} members</span>
+    <Card className="cursor-pointer overflow-hidden" style={{ padding: 0 }}>
+      <div onClick={onOpen}>
+        <div className="h-16 relative" style={{ background: `linear-gradient(135deg, ${club.color}, ${club.color}99)` }}>
+          <div
+            className="absolute -bottom-5 left-4 w-12 h-12 rounded-2xl flex items-center justify-center text-2xl"
+            style={{ backgroundColor: C.paperCard, border: `2px solid ${C.paperCard}`, boxShadow: "0 2px 6px rgba(27,27,58,0.15)" }}
+          >
+            {club.icon}
+          </div>
+        </div>
+        <div className="pt-7 px-4 pb-4">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className="font-extrabold text-sm leading-tight" style={{ color: C.ink }}>{club.name}</h3>
+            <span className="text-xs font-semibold shrink-0" style={{ color: C.textMuted }}>{club.members}</span>
+          </div>
+          <p className="text-xs mb-2.5 italic" style={{ color: C.textMuted }}>{club.tagline}</p>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            <Badge bg={club.major ? C.tealSoft : C.coralSoft} fg={club.major ? C.teal : C.coral}>{club.category}</Badge>
+            {club.tags.slice(0, 2).map((t) => <Badge key={t} bg={C.paper} fg={C.inkSoft}>{t}</Badge>)}
+          </div>
+        </div>
       </div>
-      <h3 className="font-extrabold" style={{ color: C.ink }}>{club.name}</h3>
-      <p className="text-sm my-2" style={{ color: C.inkSoft }}>{club.desc}</p>
-      <SecondaryButton active={joined} onClick={onToggle} icon={joined ? CheckCircle2 : Plus}>
-        {joined ? "Joined" : club.joinType === "approval" ? "Request to join" : "Join club"}
-      </SecondaryButton>
+      <div className="px-4 pb-4">
+        <SecondaryButton active={joined} onClick={(e) => { e?.stopPropagation?.(); onToggle(); }} icon={joined ? CheckCircle2 : Plus}>
+          {joined ? "Joined" : club.joinType === "approval" ? "Request to join" : "Join club"}
+        </SecondaryButton>
+      </div>
     </Card>
   );
 }
 
-function CreateClubModal({ onClose, onSubmit }) {
-  const [form, setForm] = useState({ name: "", desc: "", category: "Interest club", major: "", joinType: "open" });
+function FeaturedClubBanner({ club, joined, onToggle, onOpen }) {
+  return (
+    <div
+      onClick={onOpen}
+      className="cursor-pointer rounded-2xl overflow-hidden mb-8 relative"
+      style={{ background: `linear-gradient(120deg, ${club.color}, ${club.color}cc)` }}
+    >
+      <div className="p-5 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl shrink-0" style={{ backgroundColor: "rgba(255,255,255,0.25)" }}>
+          {club.icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full" style={{ backgroundColor: "rgba(255,255,255,0.25)", color: "#fff" }}>🔥 Trending club</span>
+          </div>
+          <h2 className="font-black text-xl sm:text-2xl text-white">{club.name}</h2>
+          <p className="text-sm text-white/90 italic mt-0.5">{club.tagline}</p>
+          <p className="text-xs text-white/80 mt-1.5">{club.members} members · {club.activity}</p>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onToggle(); }}
+          className="shrink-0 px-4 py-2 rounded-xl font-semibold text-sm"
+          style={{ backgroundColor: joined ? "rgba(255,255,255,0.25)" : "#fff", color: joined ? "#fff" : C.ink }}
+        >
+          {joined ? "Joined ✓" : "Join now"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Club detail ----------
+function ClubDetailView({ club, profile, joined, onToggleJoin, clubs, setClubs, posts, setPosts, pushNotification, onBack }) {
+  const [tab, setTab] = useState("feed");
+  const clubMembers = getClubMembers(club, Math.min(10, club.members));
+  const clubPosts = posts.filter((p) => p.club === club.name);
+
+  const rsvp = (eventTitle) => {
+    setClubs((prev) => prev.map((c) => {
+      if (c.id !== club.id) return c;
+      return {
+        ...c,
+        events: c.events.map((ev) => ev.title === eventTitle ? { ...ev, rsvpedByMe: !ev.rsvpedByMe, attendeeBump: ev.rsvpedByMe ? -1 : 1 } : ev),
+      };
+    }));
+  };
+
+  return (
+    <div className="max-w-4xl">
+      <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-semibold mb-4" style={{ color: C.teal }}>
+        <ArrowLeft size={15} /> Back to clubs
+      </button>
+
+      <div className="rounded-2xl overflow-hidden mb-5" style={{ border: `1px solid ${C.paperLine}` }}>
+        <div className="h-24 sm:h-28 relative" style={{ background: `linear-gradient(135deg, ${club.color}, ${club.color}99)` }}>
+          <div
+            className="absolute -bottom-7 left-5 w-16 h-16 rounded-2xl flex items-center justify-center text-3xl"
+            style={{ backgroundColor: C.paperCard, boxShadow: "0 2px 8px rgba(27,27,58,0.2)" }}
+          >
+            {club.icon}
+          </div>
+        </div>
+        <div className="pt-10 px-5 pb-5" style={{ backgroundColor: C.paperCard }}>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h1 className="font-black text-xl sm:text-2xl" style={{ color: C.ink }}>{club.name}</h1>
+              <p className="text-sm italic mt-0.5" style={{ color: C.textMuted }}>{club.tagline}</p>
+            </div>
+            <SecondaryButton active={joined} onClick={onToggleJoin} icon={joined ? CheckCircle2 : Plus}>
+              {joined ? "Joined" : club.joinType === "approval" ? "Request to join" : "Join club"}
+            </SecondaryButton>
+          </div>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            <Badge bg={club.major ? C.tealSoft : C.coralSoft} fg={club.major ? C.teal : C.coral}>{club.category}</Badge>
+            {club.tags.map((t) => <Badge key={t} bg={C.paper} fg={C.inkSoft}>{t}</Badge>)}
+          </div>
+          <div className="flex items-center gap-4 mt-3 text-xs" style={{ color: C.textMuted }}>
+            <span>{club.members} members</span>
+            <span>· Founded {club.founded}</span>
+            <span>· {club.activity}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-5 overflow-x-auto">
+        <SecondaryButton active={tab === "feed"} onClick={() => setTab("feed")} icon={Sparkles}>Feed</SecondaryButton>
+        <SecondaryButton active={tab === "events"} onClick={() => setTab("events")} icon={Calendar}>Events</SecondaryButton>
+        <SecondaryButton active={tab === "members"} onClick={() => setTab("members")} icon={Users}>Members</SecondaryButton>
+        <SecondaryButton active={tab === "about"} onClick={() => setTab("about")} icon={FileText}>About</SecondaryButton>
+      </div>
+
+      {tab === "feed" && (
+        <div className="space-y-4">
+          {club.announcements && club.announcements.length > 0 && (
+            <Card style={{ backgroundColor: C.tealSoft, borderColor: "transparent" }}>
+              <h4 className="font-bold text-xs uppercase tracking-wide mb-2" style={{ color: C.teal }}>📌 Pinned announcements</h4>
+              <div className="space-y-2">
+                {club.announcements.map((a, i) => (
+                  <div key={i} className="text-sm" style={{ color: C.inkSoft }}>
+                    {a.text}
+                    <span className="text-xs block mt-0.5" style={{ color: C.textMuted }}>{timeAgo(a.ts)}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+          {clubPosts.length === 0 && (
+            <p className="text-sm" style={{ color: C.textMuted }}>No project posts tagged to this club yet — post one from the Project Feed and tag "{club.name}".</p>
+          )}
+          {clubPosts.map((p) => (
+            <Card key={p.id}>
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0" style={{ backgroundColor: C.tealSoft, color: C.teal }}>
+                  {p.author.split(" ").map((x) => x[0]).join("").slice(0, 2)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                    <span className="font-bold text-sm" style={{ color: C.ink }}>{p.author}</span>
+                    <span className="text-xs" style={{ color: C.textMuted }}>· {timeAgo(p.ts)}</span>
+                  </div>
+                  <h4 className="font-extrabold text-sm mt-1" style={{ color: C.ink }}>{p.title}</h4>
+                  <p className="text-sm mt-1" style={{ color: C.inkSoft }}>{p.body}</p>
+                  <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold" style={{ color: C.textMuted }}>
+                    <Heart size={14} /> {p.likes}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {tab === "events" && (
+        <div className="space-y-3">
+          {(!club.events || club.events.length === 0) && <p className="text-sm" style={{ color: C.textMuted }}>No upcoming events scheduled.</p>}
+          {club.events && club.events.map((ev) => {
+            const count = ev.attendees + (ev.attendeeBump || 0);
+            return (
+              <Card key={ev.title}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-sm" style={{ color: C.ink }}>{ev.title}</h4>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs" style={{ color: C.textMuted }}>
+                      <span className="flex items-center gap-1"><Calendar size={12} /> {ev.date}</span>
+                      <span className="flex items-center gap-1"><MapPin size={12} /> {ev.location}</span>
+                      <span>{count} attending</span>
+                    </div>
+                  </div>
+                  <SecondaryButton active={ev.rsvpedByMe} onClick={() => rsvp(ev.title)} icon={ev.rsvpedByMe ? CheckCircle2 : Plus}>
+                    {ev.rsvpedByMe ? "Going" : "RSVP"}
+                  </SecondaryButton>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
+      {tab === "members" && (
+        <div>
+          <h4 className="font-extrabold text-sm mb-3" style={{ color: C.ink }}>Officers</h4>
+          <div className="flex flex-wrap gap-3 mb-6">
+            {(club.officers || clubMembers.slice(0, 2)).map((name) => (
+              <div key={name} className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ backgroundColor: C.paperCard, border: `1px solid ${C.paperLine}` }}>
+                <div className="w-7 h-7 rounded-full flex items-center justify-center font-bold text-[10px]" style={{ backgroundColor: colorForName(name), color: "#1e1f22" }}>
+                  {name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                </div>
+                <span className="text-sm font-semibold" style={{ color: C.ink }}>{name}</span>
+              </div>
+            ))}
+          </div>
+          <h4 className="font-extrabold text-sm mb-3" style={{ color: C.ink }}>Members ({club.members})</h4>
+          <div className="flex flex-wrap gap-2">
+            {clubMembers.map((name) => (
+              <div key={name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full" style={{ backgroundColor: C.paper }}>
+                <div className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px]" style={{ backgroundColor: colorForName(name), color: "#1e1f22" }}>
+                  {name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
+                </div>
+                <span className="text-xs font-medium" style={{ color: C.inkSoft }}>{name}</span>
+              </div>
+            ))}
+            <span className="text-xs px-2.5 py-1.5" style={{ color: C.textMuted }}>+{Math.max(0, club.members - clubMembers.length)} more</span>
+          </div>
+        </div>
+      )}
+
+      {tab === "about" && (
+        <Card>
+          <p className="text-sm mb-4" style={{ color: C.inkSoft }}>{club.desc}</p>
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Category</span>{club.category}</div>
+            <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Founded</span>{club.founded}</div>
+            <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Joining</span>{club.joinType === "approval" ? "Approval needed" : "Open"}</div>
+            <div><span className="block text-xs font-bold uppercase" style={{ color: C.textMuted }}>Activity</span>{club.activity}</div>
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+
+function CreateClubModal({ onClose, onSubmit, profile }) {
+  const [form, setForm] = useState({ name: "", tagline: "", desc: "", category: "Interest club", major: "", joinType: "open", icon: CLUB_ICONS[0], color: CLUB_COLORS[0] });
   return (
     <Modal title="Create a club" onClose={onClose}>
-      <Field label="Club name"><input style={inputStyle} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></Field>
+      <Field label="Pick an icon">
+        <div className="grid grid-cols-8 gap-1.5">
+          {CLUB_ICONS.map((ic) => (
+            <button
+              key={ic}
+              onClick={() => setForm({ ...form, icon: ic })}
+              className="aspect-square rounded-lg flex items-center justify-center text-lg"
+              style={{ backgroundColor: form.icon === ic ? C.tealSoft : C.paper, border: `1px solid ${form.icon === ic ? C.teal : C.paperLine}` }}
+            >
+              {ic}
+            </button>
+          ))}
+        </div>
+      </Field>
+      <Field label="Pick a color">
+        <div className="flex gap-2">
+          {CLUB_COLORS.map((col) => (
+            <button
+              key={col}
+              onClick={() => setForm({ ...form, color: col })}
+              className="w-7 h-7 rounded-full shrink-0"
+              style={{ backgroundColor: col, border: form.color === col ? `2px solid ${C.ink}` : "2px solid transparent", boxShadow: form.color === col ? "0 0 0 2px #fff inset" : "none" }}
+            />
+          ))}
+        </div>
+      </Field>
+      <Field label="Club name"><input style={inputStyle} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Robotics Club" /></Field>
+      <Field label="Tagline (one short line)"><input style={inputStyle} value={form.tagline} onChange={(e) => setForm({ ...form, tagline: e.target.value })} placeholder="e.g. Building bots that don't fall over" /></Field>
       <Field label="Description"><textarea style={{ ...inputStyle, minHeight: 70 }} value={form.desc} onChange={(e) => setForm({ ...form, desc: e.target.value })} /></Field>
       <Field label="Type">
         <select style={inputStyle} value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value, major: e.target.value === "Interest club" ? "" : form.major })}>
@@ -2054,7 +2536,19 @@ function CreateClubModal({ onClose, onSubmit }) {
       </Field>
       <PrimaryButton
         style={{ width: "100%", justifyContent: "center" }}
-        onClick={() => form.name && onSubmit({ ...form, id: "c" + Date.now(), members: 1, major: form.major || null })}
+        onClick={() => form.name && onSubmit({
+          ...form,
+          id: "c" + Date.now(),
+          members: 1,
+          major: form.major || null,
+          tagline: form.tagline || "A brand new club — come shape what it becomes.",
+          tags: ["New"],
+          founded: new Date().getFullYear(),
+          activity: "New",
+          officers: [profile?.name || "Founder"],
+          events: [],
+          announcements: [],
+        })}
       >
         Create club
       </PrimaryButton>
